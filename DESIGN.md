@@ -28,7 +28,7 @@
 
 - **默认清单**：`src/main/resources/terrainradar/default-blocks.json`（21 个分类、129 个方块 ID，沿用资源包时代的清单）。
 - **全局配置**：`config/terrainradar.json`。
-- **GUI（已实现）**：Cloth Config 设置页（总开关、光照穿透）+ 自建「方块清单」页（搜索、分类、分页、勾选、全选/反选、预设：「默认 / 仅树叶 / 仅植物」）；通过 **ModMenu** 或 `/terrainradar gui` 打开。
+- **GUI（已实现）**：自建 Screen「TerrainRadar 设置」，两个标签页：**设置**（隐藏方块、光照穿透）与**方块清单**（搜索、分类、滚动列表 + 滚动条 + PageUp/Down、勾选、全选/反选、预设）；底部「应用 / 返回」，不分页。通过 **ModMenu** 的配置按钮或 `/terrainradar gui` 直接打开。
 - **命令**：`/terrainradar` 客户端命令（`on` / `off` / `toggle` / `gui` / `add` / `remove` / `preset` / `list` / `reload`）。
 - **键位**：**不设置默认键位**（避免冲突）；GUI 通过 ModMenu 或 `/terrainradar` 命令打开。
 
@@ -40,7 +40,7 @@
 | 映射 | Yarn `1.21.11+build.6` |
 | Fabric Loader | `0.20.1`（运行时可低至 0.17.x） |
 | Fabric API | `0.141.6+1.21.11` |
-| Cloth Config | `21.11.153` |
+| Cloth Config | `21.11.153`（依赖暂时保留；当前 GUI 为自建 Screen，未使用 Cloth） |
 | ModMenu（可选） | `17.0.1` |
 | Loom | `1.19.3`（官方 1.21.11 模板的 `net.fabricmc.fabric-loom-remap`） |
 | Gradle | 9.8.2 |
@@ -76,7 +76,7 @@
 - 1.21.11 纯净 Fabric 环境通过。
 - **2026-11-05 已在 1.21.11 + Fabric API 0.141.6（Indigo）纯净实例实测通过：隐藏、补洞（无洞）、光照穿透差异均符合预期。**
 
-**完整版（第二阶段）**：Cloth Config 设置页、自建可搜索清单页、预设、ModMenu 集成（不设默认键位）。
+**第二阶段（已实现）**：单界面标签页（设置 / 方块清单）、可滚动清单（滚动条 / PageUp/Down）、预设、ModMenu 集成（不设默认键位）。Cloth Config 依赖保留但暂未使用。
 
 ## 7. 测试与交付
 

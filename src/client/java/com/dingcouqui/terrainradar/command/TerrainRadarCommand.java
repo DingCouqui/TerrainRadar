@@ -4,7 +4,7 @@ import com.dingcouqui.terrainradar.Refresh;
 import com.dingcouqui.terrainradar.TerrainRadarClient;
 import com.dingcouqui.terrainradar.config.ConfigManager;
 import com.dingcouqui.terrainradar.config.Presets;
-import com.dingcouqui.terrainradar.gui.TerrainRadarHomeScreen;
+import com.dingcouqui.terrainradar.gui.TerrainRadarScreen;
 import com.dingcouqui.terrainradar.hidden.HiddenBlocks;
 import com.dingcouqui.terrainradar.hidden.LightCache;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -149,7 +149,7 @@ public final class TerrainRadarCommand {
     }
 
     private static int openGui() {
-        MinecraftClient.getInstance().setScreen(new TerrainRadarHomeScreen(null));
+        MinecraftClient.getInstance().setScreen(new TerrainRadarScreen(null));
         return 1;
     }
 
