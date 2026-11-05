@@ -6,6 +6,7 @@
   "client": [
     "BlockMixin",
     "BlockRenderManagerMixin",
+    "IndigoTerrainRenderContextMixin",
     "WorldRendererMixin"
   ],
   "injectors": {
