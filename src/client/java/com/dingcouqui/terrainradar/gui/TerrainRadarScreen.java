@@ -9,7 +9,6 @@ import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.gui.widget.CheckboxWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.input.KeyInput;
 import net.minecraft.item.Items;
@@ -56,6 +55,8 @@ public class TerrainRadarScreen extends Screen {
     private TextFieldWidget searchField;
     private boolean appliedFlash;
     private boolean draggingScrollbar;
+    private ButtonWidget enabledButton;
+    private ButtonWidget lightButton;
 
     public TerrainRadarScreen(Screen parent) {
         super(Text.literal("TerrainRadar 设置"));
@@ -68,29 +69,37 @@ public class TerrainRadarScreen extends Screen {
         allBlocks.sort(Comparator.comparing(block -> Registries.BLOCK.getId(block).toString()));
     }
 
-    private int panelLeft() {
-        return width / 2 - 240;
-    }
+    // ---- 布局 ----
 
     private int panelWidth() {
-        return Math.min(480, width - 40);
+        return Math.min(460, width - 40);
+    }
+
+    private int panelLeft() {
+        return width / 2 - panelWidth() / 2;
     }
 
     private int contentTop() {
-        return 64;
+        return 44;
     }
 
     private int listTop() {
-        return contentTop() + 76;
+        return contentTop() + 52;
     }
 
     private int listBottom() {
-        return height - 66;
+        return height - 52;
     }
 
     private int listHeight() {
         return Math.max(ROW_HEIGHT, listBottom() - listTop());
     }
+
+    private int settingsRowY() {
+        return height / 2 - 44;
+    }
+
+    // ---- 数据 ----
 
     private List<Block> filtered() {
         String query = search.trim().toLowerCase(Locale.ROOT);
@@ -133,7 +142,7 @@ public class TerrainRadarScreen extends Screen {
         if (total <= visible) {
             return listHeight();
         }
-        return Math.max(20, listHeight() * visible / total);
+        return Math.max(24, listHeight() * visible / total);
     }
 
     private int scrollbarThumbY() {
@@ -145,26 +154,32 @@ public class TerrainRadarScreen extends Screen {
         return listTop() + (int) Math.round((double) scroll / max * travel);
     }
 
+    // ---- 初始化 ----
+
     @Override
     protected void init() {
         int left = panelLeft();
         int w = panelWidth();
         scroll = Math.min(scroll, maxScroll());
 
-        // 标签页
+        // 标签按钮：沿用上一版的居中大按钮样式
+        int tabW1 = 200;
+        int tabW2 = 240;
+        int gap = 8;
+        int tabX = width / 2 - (tabW1 + gap + tabW2) / 2;
         addDrawableChild(ButtonWidget.builder(Text.literal(tab == TAB_SETTINGS ? "» 设置" : "设置"),
                         button -> switchTab(TAB_SETTINGS))
-                .dimensions(left, 30, 110, 20).build());
+                .dimensions(tabX, 10, tabW1, 20).build());
         addDrawableChild(ButtonWidget.builder(Text.literal(tab == TAB_BLOCKS ? "» 方块清单" : "方块清单"),
                         button -> switchTab(TAB_BLOCKS))
-                .dimensions(left + 114, 30, 130, 20).build());
+                .dimensions(tabX + tabW1 + gap, 10, tabW2, 20).build());
 
         // 底部按钮
-        int bottom = height - 34;
+        int bottom = height - 30;
         addDrawableChild(ButtonWidget.builder(Text.literal("应用"), button -> applyAndKeepOpen())
-                .dimensions(left + w / 2 - 105, bottom, 100, 20).build());
+                .dimensions(width / 2 - 105, bottom, 100, 20).build());
         addDrawableChild(ButtonWidget.builder(Text.literal("返回"), button -> close())
-                .dimensions(left + w / 2 + 5, bottom, 100, 20).build());
+                .dimensions(width / 2 + 5, bottom, 100, 20).build());
 
         if (tab == TAB_SETTINGS) {
             initSettings(left, w);
@@ -174,21 +189,29 @@ public class TerrainRadarScreen extends Screen {
     }
 
     private void initSettings(int left, int w) {
-        addDrawableChild(CheckboxWidget.builder(Text.literal("隐藏方块（总开关）"), textRenderer)
-                .pos(left, contentTop() + 10)
-                .checked(workingEnabled)
-                .callback((widget, checked) -> workingEnabled = checked)
-                .build());
-        addDrawableChild(CheckboxWidget.builder(Text.literal("光照穿透（去除天光遮挡与 AO 阴影）"), textRenderer)
-                .pos(left, contentTop() + 40)
-                .checked(workingLight)
-                .callback((widget, checked) -> workingLight = checked)
-                .build());
+        int rowY = settingsRowY();
+        enabledButton = ButtonWidget.builder(toggleText(workingEnabled), button -> {
+                    workingEnabled = !workingEnabled;
+                    button.setMessage(toggleText(workingEnabled));
+                })
+                .dimensions(left + w - 80, rowY, 70, 20).build();
+        lightButton = ButtonWidget.builder(toggleText(workingLight), button -> {
+                    workingLight = !workingLight;
+                    button.setMessage(toggleText(workingLight));
+                })
+                .dimensions(left + w - 80, rowY + 34, 70, 20).build();
+        addDrawableChild(enabledButton);
+        addDrawableChild(lightButton);
+    }
+
+    private Text toggleText(boolean on) {
+        return Text.literal(on ? "开" : "关");
     }
 
     private void initBlocks(int left, int w) {
         int top = contentTop();
-        searchField = new TextFieldWidget(textRenderer, left, top + 10, w - 170, 20, Text.literal("搜索方块 ID / 名称"));
+        searchField = new TextFieldWidget(textRenderer, left, top, Math.max(80, w - 170), 20,
+                Text.literal("搜索方块 ID / 名称"));
         searchField.setText(search);
         searchField.setChangedListener(value -> {
             search = value == null ? "" : value;
@@ -203,9 +226,9 @@ public class TerrainRadarScreen extends Screen {
                             scroll = 0;
                             rebuild();
                         })
-                .dimensions(left + w - 160, top + 10, 160, 20).build());
+                .dimensions(left + w - 160, top, 160, 20).build());
 
-        int rowY = top + 38;
+        int rowY = top + 26;
         for (int i = 0; i < Presets.NAMES.size(); i++) {
             String name = Presets.NAMES.get(i);
             addDrawableChild(ButtonWidget.builder(Text.literal("预设：" + name), button -> {
@@ -215,14 +238,14 @@ public class TerrainRadarScreen extends Screen {
                             working.addAll(preset);
                         }
                     })
-                    .dimensions(left + i * 122, rowY, 116, 18).build());
+                    .dimensions(left + i * 104, rowY, 100, 18).build());
         }
         addDrawableChild(ButtonWidget.builder(Text.literal("全选"), button -> {
                     for (Block block : filtered()) {
                         working.add(Registries.BLOCK.getId(block).toString());
                     }
                 })
-                .dimensions(left + w - 170, rowY, 80, 18).build());
+                .dimensions(left + w - 128, rowY, 60, 18).build());
         addDrawableChild(ButtonWidget.builder(Text.literal("反选"), button -> {
                     for (Block block : filtered()) {
                         String id = Registries.BLOCK.getId(block).toString();
@@ -231,7 +254,7 @@ public class TerrainRadarScreen extends Screen {
                         }
                     }
                 })
-                .dimensions(left + w - 86, rowY, 80, 18).build());
+                .dimensions(left + w - 64, rowY, 60, 18).build());
     }
 
     private void switchTab(int newTab) {
@@ -255,6 +278,8 @@ public class TerrainRadarScreen extends Screen {
         appliedFlash = true;
     }
 
+    // ---- 渲染 ----
+
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         // 1.21.11 的 renderWithTooltip 已经调用了 renderBackground（含 blur），这里不要再调。
@@ -264,18 +289,19 @@ public class TerrainRadarScreen extends Screen {
         context.drawCenteredTextWithShadow(textRenderer, title, width / 2, 12, 0xFFFFFF);
 
         if (tab == TAB_SETTINGS) {
+            int rowY = settingsRowY();
+            context.drawTextWithShadow(textRenderer, Text.literal("隐藏方块（总开关）"), left + 10, rowY + 6, 0xFFFFFF);
+            context.drawTextWithShadow(textRenderer, Text.literal("光照穿透（去除天光遮挡与 AO 阴影）"),
+                    left + 10, rowY + 40, 0xFFFFFF);
             context.drawTextWithShadow(textRenderer,
-                    Text.literal("勾选后会立即影响渲染；修改完点「应用」，点「返回」放弃修改。"),
-                    left, contentTop() + 90, 0xA0A0A0);
-            context.drawTextWithShadow(textRenderer,
-                    Text.literal("方块清单：" + working.size() + " 个方块（切换上方「方块清单」标签页编辑）"),
-                    left, contentTop() + 106, 0xA0A0A0);
+                    Text.literal("修改完点「应用」生效，点「返回」放弃修改。当前清单：" + working.size() + " 个方块"),
+                    left + 10, rowY + 86, 0xA0A0A0);
         } else {
             renderBlockList(context, left, w, mouseX, mouseY);
         }
 
         if (appliedFlash) {
-            context.drawCenteredTextWithShadow(textRenderer, Text.literal("已应用"), width / 2, height - 52, 0x55FF55);
+            context.drawCenteredTextWithShadow(textRenderer, Text.literal("已应用"), width / 2, height - 50, 0x55FF55);
         }
     }
 
@@ -298,14 +324,13 @@ public class TerrainRadarScreen extends Screen {
         }
         context.drawTextWithShadow(textRenderer,
                 Text.literal("已选 " + working.size() + " / 匹配 " + blocks.size()
-                        + " ｜ 滚轮/PageUp/Down 滚动 ｜ 点击行切换"),
-                left + 4, bottom + 6, 0xA0A0A0);
+                        + " ｜ 滚轮、PageUp/Down、拖动滚动条"),
+                left + 4, bottom + 4, 0xA0A0A0);
 
         // 滚动条
         int max = maxScroll();
         if (max > 0) {
             int sx = scrollbarX();
-            int track = listHeight();
             context.fill(sx, top, sx + SCROLLBAR_WIDTH, bottom, 0x55000000);
             int thumbH = scrollbarThumbHeight();
             int thumbY = scrollbarThumbY();
@@ -325,6 +350,8 @@ public class TerrainRadarScreen extends Screen {
         }
         context.drawTextWithShadow(textRenderer, Text.literal(label), x + 18, y + 6, 0xFFFFFF);
     }
+
+    // ---- 输入 ----
 
     @Override
     public boolean mouseClicked(Click click, boolean doubled) {
