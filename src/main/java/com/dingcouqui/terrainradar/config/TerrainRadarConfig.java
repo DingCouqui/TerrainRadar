@@ -8,7 +8,7 @@ public final class TerrainRadarConfig {
     public int version = 1;
     public boolean enabled = true;
     public boolean lightPassthrough = true;
-    public String preset = "默认";
+    public String preset = "植被";
     public Set<String> hidden = new LinkedHashSet<>();
 
     /** 统一 ID 格式：小写、带命名空间、去重、去掉空项。 */
@@ -33,8 +33,9 @@ public final class TerrainRadarConfig {
             }
         }
         hidden = fixed;
-        if (preset == null || preset.isEmpty()) {
-            preset = "自定义";
+        if (preset == null || preset.isEmpty()
+                || (!Presets.isPresetName(preset) && !Presets.CUSTOM.equals(preset))) {
+            preset = Presets.CUSTOM;
         }
         return this;
     }

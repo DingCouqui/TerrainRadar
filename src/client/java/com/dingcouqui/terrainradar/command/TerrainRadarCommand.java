@@ -116,7 +116,7 @@ public final class TerrainRadarCommand {
         String name = rawName.trim();
         Set<String> ids = Presets.resolve(name);
         if (ids == null) {
-            source.sendError(Text.literal("未知预设：" + name + "（可用：默认 / 仅树叶 / 仅植物）"));
+            source.sendError(Text.literal("未知预设：" + name + "（可用：植被 / 表层 / 深层）"));
             return 0;
         }
         ConfigManager.get().hidden = new LinkedHashSet<>(ids);

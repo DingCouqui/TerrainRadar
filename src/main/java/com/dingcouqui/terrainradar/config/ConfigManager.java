@@ -48,10 +48,10 @@ public final class ConfigManager {
 
     private static TerrainRadarConfig defaultConfig() {
         TerrainRadarConfig fresh = new TerrainRadarConfig();
-        fresh.hidden = new LinkedHashSet<>(DefaultBlocks.all());
+        fresh.hidden = new LinkedHashSet<>(Presets.resolve("植被"));
         fresh.enabled = true;
         fresh.lightPassthrough = true;
-        fresh.preset = "默认";
+        fresh.preset = "植被";
         return fresh;
     }
 

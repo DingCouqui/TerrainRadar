@@ -188,6 +188,7 @@ public class TerrainRadarScreen extends Screen {
     private int tab = TAB_SETTINGS;
 
     private String search = "";
+    private String selectedPreset = initialPreset();
     private int categoryIndex;
     private int scroll;
     private TextFieldWidget searchField;
@@ -391,6 +392,11 @@ public class TerrainRadarScreen extends Screen {
         }
     }
 
+    private static String initialPreset() {
+        String preset = ConfigManager.get().preset;
+        return Presets.isPresetName(preset) ? preset : Presets.CUSTOM;
+    }
+
     private void addPresetButton(int x, int y, int width, int index) {
         String name = Presets.NAMES.get(index);
         addDrawableChild(ButtonWidget.builder(Text.literal("预设：" + name), button -> {
@@ -398,6 +404,7 @@ public class TerrainRadarScreen extends Screen {
                     if (preset != null) {
                         working.clear();
                         working.addAll(preset);
+                        selectedPreset = name;
                     }
                 })
                 .dimensions(x, y, width, 18).build());
@@ -408,6 +415,7 @@ public class TerrainRadarScreen extends Screen {
                     for (Block block : filtered()) {
                         working.add(Registries.BLOCK.getId(block).toString());
                     }
+                    selectedPreset = Presets.CUSTOM;
                 })
                 .dimensions(x, y, selectAllWidth, 18).build());
         addDrawableChild(ButtonWidget.builder(Text.literal("反选"), button -> {
@@ -417,6 +425,7 @@ public class TerrainRadarScreen extends Screen {
                             working.add(id);
                         }
                     }
+                    selectedPreset = Presets.CUSTOM;
                 })
                 .dimensions(x + selectAllWidth + 4, y, invertWidth, 18).build());
     }
@@ -437,7 +446,7 @@ public class TerrainRadarScreen extends Screen {
         ConfigManager.get().enabled = workingEnabled;
         ConfigManager.get().lightPassthrough = workingLight;
         ConfigManager.get().hidden = new LinkedHashSet<>(working);
-        ConfigManager.get().preset = "自定义";
+        ConfigManager.get().preset = selectedPreset;
         TerrainRadarClient.applyChange();
         appliedFlash = true;
     }
@@ -562,6 +571,7 @@ public class TerrainRadarScreen extends Screen {
                 if (!working.remove(id)) {
                     working.add(id);
                 }
+                selectedPreset = Presets.CUSTOM;
                 return true;
             }
         }
