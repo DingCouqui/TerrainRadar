@@ -38,14 +38,23 @@ public class TerrainRadarScreen extends Screen {
     private static final Identifier CHECKBOX_HIGHLIGHTED = Identifier.ofVanilla("widget/checkbox_highlighted");
     private static final Identifier CHECKBOX_SELECTED = Identifier.ofVanilla("widget/checkbox_selected");
     private static final Identifier CHECKBOX_SELECTED_HIGHLIGHTED = Identifier.ofVanilla("widget/checkbox_selected_highlighted");
-    private static final List<String> CATEGORIES = new ArrayList<>();
+    private static final List<String> CATEGORIES = List.of("全部", "树叶", "植物", "树木", "其它");
     private static final Map<String, String> GROUP_OF = new HashMap<>();
 
     static {
-        CATEGORIES.add("全部");
-        CATEGORIES.addAll(DefaultBlocks.groups().keySet());
-        CATEGORIES.add("其它");
         DefaultBlocks.groups().forEach((group, ids) -> ids.forEach(id -> GROUP_OF.put(id, group)));
+    }
+
+    /** 把 21 个细分组合并成 4 个可切换分类；0 = 其它。 */
+    private static int groupCategory(String group) {
+        return switch (group) {
+            case "树叶（Leaves）" -> 1;
+            case "原木（Logs）", "木与菌核（Wood & Hyphae）", "菌柄（Stems）" -> 3;
+            case "雪层（Snow Layer）", "竹子（Bamboo）", "甘蔗 / 甜浆果 / 仙人掌（Farm Plants & Cactus）",
+                 "南瓜与西瓜（Gourds）", "蘑菇方块（Mushroom Blocks）", "疣块（Wart Blocks）",
+                 "菌光体（Shroomlight）", "紫颂（Chorus）" -> 0;
+            default -> 2;
+        };
     }
 
     private final Screen parent;
@@ -111,14 +120,14 @@ public class TerrainRadarScreen extends Screen {
     private List<Block> filtered() {
         String query = search.trim().toLowerCase(Locale.ROOT);
         String category = CATEGORIES.get(categoryIndex);
+        int wanted = categoryIndex == 4 ? 0 : categoryIndex;
         List<Block> result = new ArrayList<>();
         for (Block block : allBlocks) {
             String id = Registries.BLOCK.getId(block).toString();
             String group = GROUP_OF.getOrDefault(id, "其它");
-            if (!category.equals("全部") && !category.equals(group)) {
+            if (categoryIndex != 0 && groupCategory(group) != wanted) {
                 continue;
-            }
-            if (!query.isEmpty()) {
+            }            if (!query.isEmpty()) {
                 String name = block.getName().getString().toLowerCase(Locale.ROOT);
                 if (!id.toLowerCase(Locale.ROOT).contains(query) && !name.contains(query)) {
                     continue;
@@ -170,11 +179,11 @@ public class TerrainRadarScreen extends Screen {
         scroll = Math.min(scroll, maxScroll());
 
         // 标签按钮：沿用上一版的居中大按钮样式
-        int tabW1 = 200;
-        int tabW2 = 240;
+        int tabW1 = 240;
+        int tabW2 = 200;
         int gap = 8;
         int tabX = width / 2 - (tabW1 + gap + tabW2) / 2;
-        addDrawableChild(ButtonWidget.builder(Text.literal(tab == TAB_SETTINGS ? "» 设置" : "设置"),
+        addDrawableChild(ButtonWidget.builder(Text.literal(tab == TAB_SETTINGS ? "» TerrainRadar 设置" : "TerrainRadar 设置"),
                         button -> switchTab(TAB_SETTINGS))
                 .dimensions(tabX, 10, tabW1, 20).build());
         addDrawableChild(ButtonWidget.builder(Text.literal(tab == TAB_BLOCKS ? "» 方块清单" : "方块清单"),
@@ -223,7 +232,6 @@ public class TerrainRadarScreen extends Screen {
         searchField.setChangedListener(value -> {
             search = value == null ? "" : value;
             scroll = 0;
-            rebuild();
         });
         addDrawableChild(searchField);
 
@@ -293,7 +301,6 @@ public class TerrainRadarScreen extends Screen {
         super.render(context, mouseX, mouseY, delta);
         int left = panelLeft();
         int w = panelWidth();
-        context.drawCenteredTextWithShadow(textRenderer, title, width / 2, 12, 0xFFFFFFFF);
 
         if (tab == TAB_SETTINGS) {
             int rowY = settingsRowY();
@@ -313,6 +320,7 @@ public class TerrainRadarScreen extends Screen {
     }
 
     private void renderBlockList(DrawContext context, int left, int w, int mouseX, int mouseY) {
+        clampScroll();
         List<Block> blocks = filtered();
         int top = listTop();
         int bottom = listBottom();
