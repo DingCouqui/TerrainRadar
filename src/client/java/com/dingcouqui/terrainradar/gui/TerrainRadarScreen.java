@@ -319,11 +319,11 @@ public class TerrainRadarScreen extends Screen {
                         button -> switchTab(TAB_BLOCKS))
                 .dimensions(tabX + tabW1 + gap, 10, tabW2, 20).build());
 
-        // 底部按钮
+        // 底部按钮：返回在左、应用在右
         int bottom = height - 30;
-        addDrawableChild(ButtonWidget.builder(Text.literal("应用"), button -> applyAndKeepOpen())
-                .dimensions(width / 2 - 105, bottom, 100, 20).build());
         addDrawableChild(ButtonWidget.builder(Text.literal("返回"), button -> close())
+                .dimensions(width / 2 - 105, bottom, 100, 20).build());
+        addDrawableChild(ButtonWidget.builder(Text.literal("应用"), button -> applyAndKeepOpen())
                 .dimensions(width / 2 + 5, bottom, 100, 20).build());
 
         if (tab == TAB_SETTINGS) {
