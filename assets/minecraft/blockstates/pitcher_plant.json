@@ -1,0 +1,9 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "minecraft:block/terrainradar/pitcher_plant"
+      }
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "minecraft:block/terrainradar/orange_tulip"
+      }
+    }
+  ]
+}

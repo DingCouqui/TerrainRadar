@@ -1,0 +1,15 @@
+# 构建产物
+dist/
+# Python 缓存
+__pycache__/
+*.pyc
+# 本地工具缓存（不提交）
+.cache/
+# 编辑器
+.vscode/
+.idea/
+
+# �ο���ֻ���ļ�����ֹ�ϴ�/��⣩
+REFERENCE/
+*.backup
+
