@@ -7,13 +7,18 @@
   "authors": ["DingCouqui"],
   "environment": "client",
   "entrypoints": {
-    "client": ["com.dingcouqui.terrainradar.TerrainRadarClient"]
+    "client": ["com.dingcouqui.terrainradar.TerrainRadarClient"],
+    "modmenu": ["com.dingcouqui.terrainradar.modmenu.ModMenuIntegration"]
   },
   "mixins": ["terrainradar.mixins.json"],
   "icon": "assets/terrainradar/icon.png",
   "depends": {
     "fabricloader": ">=0.17.0",
     "minecraft": "1.21.11",
-    "fabric-api": "*"
+    "fabric-api": "*",
+    "cloth-config": ">=21.11.153"
+  },
+  "suggests": {
+    "modmenu": ">=17.0.0"
   }
 }

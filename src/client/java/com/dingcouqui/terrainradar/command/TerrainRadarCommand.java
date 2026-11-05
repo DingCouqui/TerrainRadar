@@ -3,22 +3,21 @@ package com.dingcouqui.terrainradar.command;
 import com.dingcouqui.terrainradar.Refresh;
 import com.dingcouqui.terrainradar.TerrainRadarClient;
 import com.dingcouqui.terrainradar.config.ConfigManager;
-import com.dingcouqui.terrainradar.config.DefaultBlocks;
+import com.dingcouqui.terrainradar.config.Presets;
+import com.dingcouqui.terrainradar.gui.TerrainRadarHomeScreen;
 import com.dingcouqui.terrainradar.hidden.HiddenBlocks;
 import com.dingcouqui.terrainradar.hidden.LightCache;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
 /** /terrainradar 客户端命令（MVP 阶段替代 GUI）。 */
@@ -49,6 +48,7 @@ public final class TerrainRadarCommand {
                                 .then(ClientCommandManager.argument("name", StringArgumentType.string())
                                         .executes(ctx -> preset(ctx.getSource(), StringArgumentType.getString(ctx, "name")))))
                         .then(ClientCommandManager.literal("list").executes(ctx -> list(ctx.getSource())))
+                        .then(ClientCommandManager.literal("gui").executes(ctx -> openGui()))
                         .then(ClientCommandManager.literal("reload").executes(ctx -> reload(ctx.getSource())))
         ));
     }
@@ -114,7 +114,7 @@ public final class TerrainRadarCommand {
 
     private static int preset(FabricClientCommandSource source, String rawName) {
         String name = rawName.trim();
-        Set<String> ids = resolvePreset(name);
+        Set<String> ids = Presets.resolve(name);
         if (ids == null) {
             source.sendError(Text.literal("未知预设：" + name + "（可用：默认 / 仅树叶 / 仅植物）"));
             return 0;
@@ -148,27 +148,12 @@ public final class TerrainRadarCommand {
         return 1;
     }
 
-    private static void apply() {
-        TerrainRadarClient.applyChange();
+    private static int openGui() {
+        MinecraftClient.getInstance().setScreen(new TerrainRadarHomeScreen(null));
+        return 1;
     }
 
-    private static Set<String> resolvePreset(String name) {
-        Map<String, List<String>> groups = DefaultBlocks.groups();
-        return switch (name.toLowerCase(Locale.ROOT)) {
-            case "默认", "default" -> new LinkedHashSet<>(DefaultBlocks.all());
-            case "仅树叶", "leaves", "leaf" -> new LinkedHashSet<>(
-                    groups.getOrDefault("树叶（Leaves）", List.of()));
-            case "仅植物", "plants", "plant" -> {
-                Set<String> ids = new LinkedHashSet<>();
-                groups.forEach((group, blocks) -> {
-                    if (!group.contains("原木") && !group.contains("木与菌核") && !group.contains("菌柄")
-                            && !group.contains("蘑菇方块") && !group.contains("疣块") && !group.contains("菌光体")) {
-                        ids.addAll(blocks);
-                    }
-                });
-                yield ids;
-            }
-            default -> null;
-        };
+    private static void apply() {
+        TerrainRadarClient.applyChange();
     }
 }

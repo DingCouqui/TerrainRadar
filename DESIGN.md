@@ -28,7 +28,7 @@
 
 - **默认清单**：`src/main/resources/terrainradar/default-blocks.json`（21 个分类、129 个方块 ID，沿用资源包时代的清单）。
 - **全局配置**：`config/terrainradar.json`。
-- **GUI（第二阶段）**：Cloth Config 设置页（总开关、光照穿透）+ 自建「方块清单」页（搜索、分类、勾选、全选/反选、预设）；通过 **ModMenu** 打开。
+- **GUI（已实现）**：Cloth Config 设置页（总开关、光照穿透）+ 自建「方块清单」页（搜索、分类、分页、勾选、全选/反选、预设：「默认 / 仅树叶 / 仅植物」）；通过 **ModMenu** 或 `/terrainradar gui` 打开。
 - **命令**：`/terrainradar` 客户端命令（`on` / `off` / `toggle` / `gui` / `add` / `remove` / `preset` / `list` / `reload`）。
 - **键位**：**不设置默认键位**（避免冲突）；GUI 通过 ModMenu 或 `/terrainradar` 命令打开。
 
@@ -41,11 +41,12 @@
 | Fabric Loader | `0.20.1`（运行时可低至 0.17.x） |
 | Fabric API | `0.141.6+1.21.11` |
 | Cloth Config | `21.11.153` |
+| ModMenu（可选） | `17.0.1` |
 | Loom | `1.19.3`（官方 1.21.11 模板的 `net.fabricmc.fabric-loom-remap`） |
 | Gradle | 9.8.2 |
 | JDK | 21 |
 
-> MVP 已构建成功（`build/libs/terrainradar-0.1.0.jar`）。构建命令（本机）：
+> MVP 已构建成功（`build/libs/terrainradar-0.2.0.jar`）。构建命令（本机）：
 >
 > ```powershell
 > $env:JAVA_HOME='D:\Games\Minecraft\OtherClients\McHMR\java25'
