@@ -1,16 +1,16 @@
-# TerrainRadar 手动测试清单（v0.1.0）
+# TerrainRadar 手动测试清单（v0.2.0）
 
 > 分工：实现方**不操作游戏目录**。你只需要把 zip 复制进对应实例的 `resourcepacks/`，按下面步骤启动、观察、回报。
 > 资源包只影响客户端渲染，不改存档；测试前不用备份世界。
 
 ## 0. 交付物
 
-- `dist/TerrainRadar-v0.1.0.zip`
+- `dist/TerrainRadar-v0.2.0.zip`
 - 游戏目录：`D:\Games\Minecraft\Game\.minecraft`（HMCL 便携版，每版本一个隔离实例）
 
 ## 1. 首轮：26.1 纯净实例（必测）
 
-1. 复制 `TerrainRadar-v0.1.0.zip` 到：
+1. 复制 `TerrainRadar-v0.2.0.zip` 到：
    `D:\Games\Minecraft\Game\.minecraft\versions\26.1\resourcepacks\`
 2. 启动 HMCL（`D:\Games\Minecraft\Game\HMCL.exe`），选 **26.1** 启动（需要 Java 25；若提示 Java 不对，把 Java 路径指到 `D:\Games\Minecraft\OtherClients\McHMR\java25`）。
 3. 主菜单 → 选项 → 资源包：启用 **TerrainRadar**。确认它**没有被标记 incompatible / 不兼容**。
@@ -22,10 +22,10 @@
 - [ ] 资源包列表里 TerrainRadar 正常启用、无版本不兼容提示
 - [ ] `logs/latest.log` 中搜索以下关键词，**不应**出现（可截图）：
   - `Failed to load blockstate definition`
-  - `Unable to load model`
-  - `Missing texture`
-  - `No model for`
-  - `Unbounded` / `multipart`
+  - `Failed to load model`
+  - `Missing textures in model`
+
+  （`Discovered unknown block state definition` 在旧版本出现属正常：那是新版本才有的方块 ID 文件，被忽略掉。）
 
 ### B. 自然世界视觉
 
@@ -57,6 +57,23 @@
 - [ ] 苔藓地毯、落叶堆、灌木、萤火虫灌木、矮/高枯草、杜鹃花丛、苍白苔藓地毯/垂苔 消失
 - [ ] 红树根、沾泥的红树根 消失
 
+### B2. 雪地专项（v0.2.0 新增）
+
+v0.2.0 给 11 个承载积雪的地表方块去掉了 up 面的 `cullface`，隐藏雪层后地面不再出现大片空洞。用下面的命令传送到雪地看：
+
+```
+/locate biome minecraft:snowy_plains
+/locate biome minecraft:snowy_taiga
+/locate biome minecraft:ice_spikes
+/locate biome minecraft:jagged_peaks
+```
+
+- [ ] 雪地地表**没有大片空洞**（雪层隐形后，草方块/雪块/沙等正常显示）
+- [ ] 树干根部没有明显空洞（树干隐形后，地面照常显示）
+- [ ] 悬空雪片消失（树叶隐形后，树上的积雪不再漂浮）
+- [ ] 帧率没有明显下降（这些方块每个只多渲染 1 个面；明显掉帧请反馈）
+- [ ] 仍然可能出现的洞（预期，不算失败）：石头/泥土/深板岩等**未覆盖方块**上的积雪、玩家建筑上的积雪、原木贴着未覆盖地形的侧面
+
 ### C. 26.1 / 1.21.x 新方块（用 /setblock 或创造物品栏）
 
 ```
@@ -87,7 +104,7 @@
 /setblock ~11 ~ ~3 minecraft:pale_hanging_moss
 ```
 
-> 注意：`glow_lichen`、`chorus_plant`、`pale_moss_carpet` 的默认状态在原版里本来就几乎不可见，所以命令里显式给了连接/底部属性——这样"消失"才有意义（对比：原版这些状态是能看见的）。`tall_dry_grass` 在 26.1 没有 `half` 属性，直接写方块名即可。
+> 注意：`glow_lichen`、`chorus_plant`、`pale_moss_carpet` 用默认状态虽然合法，但显示效果不典型（连接/底部属性为 false），所以命令里显式给了属性；`tall_dry_grass` 在 26.1 没有 `half` 属性，直接写方块名即可。
 
 - [ ] 上述方块全部隐形（`snow[layers=1]`、`cave_vines`、`glow_lichen` 等也隐形）
 - [ ] `stripped_oak_log` 仍可见
@@ -103,16 +120,16 @@
 
 ### E. 预期中的"洞"（属正常，不是 bug）
 
-以下位置会看到**能看穿地面/墙体的小缺口**，这是资源包机制无法消除的已知代价：
+下面这些位置仍可能出现**能看穿地面/墙体的小缺口**，属已知代价（v0.2.0 只修复了雪地地表等常见情况）：
 
-- 树干根部（隐形原木与地面接触处）——约 1×1 的洞
-- 蘑菇方块、蘑菇柄接触地面处
-- 下界疣块、菌光体接触下界岩处
-- 南瓜/西瓜与地面接触处
-- 雪层第 8 层（完整方块）下方
+- 积雪压在**石头 / 泥土 / 深板岩 / 其它未覆盖方块**上（草方块、雪块、沙、砂砾等 11 种已修复）
+- 积雪压在**玩家建筑**上（木板、楼梯等不在去剔除列表里）
+- 原木/菌柄贴着**未覆盖地形**的侧面（如悬崖边）
+- 蘑菇方块、疣块、菌光体、南瓜/西瓜、沾泥的红树根与地形接触处（取决于接触方块的类型）
+- 下界岩与疣块/菌光体接触处
 
-- [ ] 这些洞出现（预期）→ 记录位置截图即可
-- [ ] 除此之外不应出现大面积的透视/穿模
+- [ ] 洞只出现在上述可解释的位置 → 截图记录即可
+- [ ] 雪地地表、树干根部**不应**再出现大片空洞
 
 ### F. 回归（这些必须保持可见）
 

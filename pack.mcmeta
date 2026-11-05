@@ -7,6 +7,6 @@
     ],
     "min_format": 18,
     "max_format": 84,
-    "description": "TerrainRadar v0.1.0 | 隐藏地形覆盖物，显露真实地形 | Java 1.20.2–26.1"
+    "description": "TerrainRadar v0.2.0 | 隐藏地形覆盖物，显露真实地形 | Java 1.20.2–26.1"
   }
 }

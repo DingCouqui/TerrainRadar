@@ -1,0 +1,22 @@
+{
+  "profiles": [
+    {
+      "name": "snow-ground",
+      "description": "雪层会剔除它下方方块的上表面（遮挡形状的面 = 完整方块）。隐藏雪层后，为常常承载积雪的地表方块去掉 up 面的 cullface，让上表面照常渲染，避免雪地出现大片空洞。",
+      "faces": ["up"],
+      "blocks": [
+        "grass_block",
+        "podzol",
+        "mycelium",
+        "coarse_dirt",
+        "pale_moss_block",
+        "snow_block",
+        "blue_ice",
+        "sand",
+        "red_sand",
+        "gravel",
+        "farmland"
+      ]
+    }
+  ]
+}

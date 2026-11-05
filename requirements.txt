@@ -1,0 +1,2 @@
+# 生成 pack.png 需要 Pillow；其它脚本只用标准库。
+pillow>=10

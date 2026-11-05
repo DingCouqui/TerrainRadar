@@ -1,0 +1,21 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "minecraft:block/nocull/sand"
+      },
+      {
+        "model": "minecraft:block/nocull/sand",
+        "y": 90
+      },
+      {
+        "model": "minecraft:block/nocull/sand",
+        "y": 180
+      },
+      {
+        "model": "minecraft:block/nocull/sand",
+        "y": 270
+      }
+    ]
+  }
+}

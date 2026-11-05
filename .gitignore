@@ -9,7 +9,6 @@ __pycache__/
 .vscode/
 .idea/
 
-# �ο���ֻ���ļ�����ֹ�ϴ�/��⣩
+# 参考用只读文件（禁止上传/入库）
 REFERENCE/
 *.backup
-

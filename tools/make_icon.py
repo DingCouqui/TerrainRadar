@@ -3,9 +3,14 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+try:
+    from PIL import Image, ImageDraw
+except ImportError:  # pragma: no cover - 只在缺依赖时触发
+    print("需要 Pillow 才能生成 pack.png：python -m pip install -r requirements.txt", file=sys.stderr)
+    raise SystemExit(1)
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "pack.png"

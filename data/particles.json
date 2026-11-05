@@ -1,5 +1,5 @@
 {
-  "source": "D:\\Agent_Workspace\\Minecraft_Code\\Minecraft\\assets\\minecraft",
+  "source": "Minecraft Java 26.1 (assets/minecraft)",
   "generated_by": "tools/extract_particles.py",
   "particles": {
     "oak_leaves": "minecraft:block/oak_leaves",

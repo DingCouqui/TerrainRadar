@@ -1,6 +1,6 @@
 # TerrainRadar 设计规格
 
-> v0.1.0（2026-11-05 定稿）。实现细节以本文件、`GLOSSARY.md` 与 `docs/adr/` 为准。
+> v0.2.0（2026-11-05）。实现细节以本文件、`GLOSSARY.md` 与 `docs/adr/` 为准。
 > 方块清单见 `docs/BLOCK-LIST.md`（由 `data/blocks.json` 生成）。
 
 ## 1. 目标
@@ -71,12 +71,13 @@
   ```
 
   没有 `elements`、没有几何（与 26.1 原版 `block/air.json` 同构），破坏粒子沿用原版贴图。
+- **去剔除覆盖（no-cull）**：雪层会剔除它下方方块的上表面，隐藏雪层后雪地会出现大片透视空洞。为此给常承载积雪的地表方块（`data/nocull.json`，默认 11 个）复制原版模型并去掉 `up` 面的 `cullface`，让上表面永远渲染。原理与参考包让被包裹的矿石保持可见相同：**可见方块自己的模型不带 `cullface` 时，它的面不会被邻居剔除**。
 - 物品栏图标、手持、物品展示框、选中轮廓、碰撞箱、光照、方块实体渲染**全部保持原版**。
-- 生成流程：`data/blocks.json`（唯一真源）→ `tools/extract_particles.py`（从 26.1 资产解析破坏粒子）→ `tools/generate.py`（生成 blockstates / 空模型 / `pack.mcmeta` / 清单文档）→ `tools/build.py`（打包）→ `tools/validate.py`（校验）。
+- 生成流程：`data/blocks.json` + `data/nocull.json`（真源）→ `tools/extract_particles.py`（从 26.1 资产解析破坏粒子）→ `tools/generate.py`（生成 blockstates / 空模型 / 去剔除模型 / `pack.mcmeta` / 清单文档）→ `tools/build.py`（打包）→ `tools/validate.py`（校验）。
 
-## 6. 已知代价（已接受）
+## 6. 已知代价
 
-- **洞**：隐藏**实心方块**（原木、木、菌柄、菌核、蘑菇方块、疣块、菌光体、南瓜、西瓜、雪层第 8 层）时，相邻方块朝向它的面会被剔除，出现可透视的缺口。面剔除依据方块状态的遮挡形状而非模型几何，资源包无法关闭。属已知且接受的代价；公开时需说明这一局部透视副作用。
+- **洞（部分已缓解）**：隐藏实心方块（32 个，见清单）时，相邻方块朝向它的面会被剔除。剔除依据邻居方块状态的遮挡形状，资源包无法在「隐藏方块」一侧关闭，只能在「要显示的方块」一侧去掉 `cullface`（代价：这些面永远渲染）。当前对 11 个承载积雪的地表方块去掉了 up 面 cullface，雪地空洞已修复；仍可能出现的洞：**石头/泥土/深板岩等未覆盖方块上的积雪**、**玩家建筑上的积雪**、原木与未覆盖地形的侧面接触、下界岩与疣块/菌光体的接触等。全量去剔除（所有方块）是可选方向，代价是明显的渲染开销，暂未默认启用。
 - **光照**：隐藏树叶不改变天光遮挡，森林下地形仍然偏暗（纯资源包无法改光照，lightmap 属 OptiFine 特性）。
 - **全局生效**：资源包没有世界上下文，玩家用这些方块搭建的建筑同样会被隐藏。
 - **1.20.2 的 `grass`**：旧 ID 的破坏粒子贴图名在 26.1 已改名（`grass` → `short_grass`），旧版本可能显示紫黑粒子，属已知小问题。
@@ -89,7 +90,7 @@
   { "pack_format": 18, "supported_formats": [18, 84], "min_format": 18, "max_format": 84 }
   ```
 
-  （1.20.2 起支持 `supported_formats`；1.21.9 起改用 `min_format`/`max_format`，且 `supported_formats` 只接受数组；1.21.6 起严格 JSON，不允许注释与尾逗号。）
+  （1.20.2 起支持 `supported_formats`；1.21.9 起改用 `min_format`/`max_format`，且只有当包声明支持旧格式（min ≤ 64）时才保留 `supported_formats`；本项目 min=18 所以保留，并固定使用数组形式。1.21.6 起严格 JSON，不允许注释与尾逗号。）
 - 1.20.3 起 `grass` 改名为 `short_grass`：额外生成 `grass.json` 别名供 1.20.2 使用，1.20.3+ 会忽略它。
 - 1.21.4 / 1.21.5 / 26.1 新增的方块在旧版本没有对应方块，blockstate 文件会被忽略（只记 debug 日志）。
 
@@ -101,8 +102,9 @@ GLOSSARY.md              领域词汇
 pack.mcmeta              生成物（资源包元数据）
 pack.png                 生成物（图标）
 data/blocks.json         唯一真源：隐藏/不处理清单、包元数据
+data/nocull.json         唯一真源：去剔除覆盖（保持可见的方块与要去的面）
 data/particles.json      生成物：每个方块的破坏粒子贴图
-assets/minecraft/...     生成物：blockstates 与空模型
+assets/minecraft/...     生成物：blockstates、空模型、去剔除模型（block/nocull）
 tools/extract_particles.py
 tools/generate.py
 tools/make_icon.py
@@ -122,6 +124,8 @@ dist/                    打包产物（不进 git）
 
 ## 10. 后续（未做）
 
+- **全量去剔除实验包**：给所有方块复制模型并去掉全部 `cullface`，洞彻底消失；代价是渲染面数明显上升，需要实测 FPS 再决定是否提供为可选子包。
+- 若雪地仍有个别空洞：按需把 `stone`/`dirt`/`deepslate` 等加入 `data/nocull.json`（代价是这些大体积方块多渲染一个面）。
 - 公开发布（GitHub Releases / Modrinth）、许可证、发布文案。
 - 可选子包：线框版（可定位方块）、接受更多洞的"更强隐藏"版。
 - 26.2+ 新方块（如 `poplar_leaves`）支持。

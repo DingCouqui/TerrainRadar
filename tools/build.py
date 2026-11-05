@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 """把生成好的资源包内容打成可直接放进 resourcepacks/ 的 zip。
 
-包内结构（zip 根目录）：
-    pack.mcmeta
-    pack.png
-    assets/minecraft/blockstates/*.json
-    assets/minecraft/models/block/terrainradar/*.json
+只打包白名单内的文件（blockstates + models + pack.mcmeta + pack.png），
+不会把 docs/data/tools/dist 或编辑器杂物打进包。
 
 用法：
     python tools/build.py
@@ -23,6 +20,17 @@ BLOCKS_FILE = ROOT / "data" / "blocks.json"
 ASSETS_DIR = ROOT / "assets"
 DIST_DIR = ROOT / "dist"
 REQUIRED = ("pack.mcmeta", "pack.png")
+ASSET_PATTERNS = ("minecraft/blockstates/**/*.json", "minecraft/models/**/*.json")
+
+
+def collect_assets() -> tuple[list[Path], list[Path]]:
+    """返回 (要打包的文件, 白名单之外的杂物)。"""
+    packaged: list[Path] = []
+    for pattern in ASSET_PATTERNS:
+        packaged.extend(sorted(path for path in ASSETS_DIR.glob(pattern) if path.is_file()))
+    packaged = sorted(set(packaged))
+    stray = sorted(path for path in ASSETS_DIR.rglob("*") if path.is_file() and path not in packaged)
+    return packaged, stray
 
 
 def main(argv=None) -> int:
@@ -37,16 +45,20 @@ def main(argv=None) -> int:
     for name in REQUIRED:
         if not (ROOT / name).is_file():
             raise SystemExit(f"缺少必需文件：{name}（先运行 tools/generate.py 和 tools/make_icon.py）")
-    if not (ASSETS_DIR / "minecraft" / "blockstates").is_dir():
-        raise SystemExit("缺少 assets/minecraft/blockstates（先运行 tools/generate.py）")
+
+    assets, stray = collect_assets()
+    if not assets:
+        raise SystemExit("assets 下没有可打包的文件（先运行 tools/generate.py）")
+    if stray:
+        print("警告：以下 assets 文件不在白名单内，未打包：")
+        for path in stray:
+            print(f"  - {path.relative_to(ROOT)}")
 
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / zip_name
 
-    files: list[Path] = [ROOT / name for name in REQUIRED]
-    files.extend(sorted(path for path in ASSETS_DIR.rglob("*") if path.is_file()))
-
+    files: list[Path] = [ROOT / name for name in REQUIRED] + assets
     # 固定时间戳，保证同内容产出的 zip 哈希稳定（便于比对与校验）。
     stamp = (2020, 1, 1, 0, 0, 0)
     with zipfile.ZipFile(out_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:

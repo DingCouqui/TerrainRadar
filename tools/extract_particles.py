@@ -132,6 +132,7 @@ def particle_for_model(assets: Path, model_id: str, cache: dict[str, dict]) -> s
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--assets", default=str(DEFAULT_ASSETS), help="assets/minecraft 目录")
+    parser.add_argument("--label", default="Minecraft Java 26.1 (assets/minecraft)", help="写进 particles.json 的来源标签（不写本机绝对路径）")
     parser.add_argument("--blocks", default=str(BLOCKS_FILE), help="隐藏清单 JSON")
     parser.add_argument("--out", default=str(OUT_FILE), help="输出 particles.json")
     args = parser.parse_args(argv)
@@ -190,7 +191,7 @@ def main(argv=None) -> int:
         particles[alias_id] = particle
 
     payload = {
-        "source": str(assets),
+        "source": args.label,
         "generated_by": "tools/extract_particles.py",
         "particles": particles,
         "missing": missing,
@@ -198,7 +199,7 @@ def main(argv=None) -> int:
         "warnings": warnings,
     }
     out_path = Path(args.out)
-    out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
 
     total = len(particles)
     print(f"已写入 {out_path}：{total} 个方块（{len(missing)} 个未解析到粒子）")

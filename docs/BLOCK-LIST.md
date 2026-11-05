@@ -1,6 +1,6 @@
 # TerrainRadar 方块清单
 
-> 由 `tools/generate.py` 从 `data/blocks.json` 生成，请勿手改。版本：v0.1.0。
+> 由 `tools/generate.py` 从 `data/blocks.json` 生成，请勿手改。版本：v0.2.0。
 
 - 隐藏方块：**129** 个（另有 1 个旧版本 ID 别名）
 - 支持版本：Java 1.20.2–26.1（单 zip，资源包格式 18–84）
@@ -142,11 +142,24 @@
 
   `potted_*`, `flower_pot`
 
+## 去剔除覆盖（保持可见的方块）
+
+隐藏实心方块会剔除相邻方块朝向它的面，留下可透视的洞。下面的方块复制了原版模型，
+并去掉指定面的 `cullface`，让这些面永远渲染（原理同参考包让矿石保持可见的做法）。
+
+### snow-ground（去掉 up 面的 cullface）
+
+雪层会剔除它下方方块的上表面（遮挡形状的面 = 完整方块）。隐藏雪层后，为常常承载积雪的地表方块去掉 up 面的 cullface，让上表面照常渲染，避免雪地出现大片空洞。
+
+  `grass_block`, `podzol`, `mycelium`, `coarse_dirt`
+  `pale_moss_block`, `snow_block`, `blue_ice`, `sand`
+  `red_sand`, `gravel`, `farmland`
+
 ## 已知代价：洞（Culling Hole）
 
 隐藏实心方块（原木、木、菌柄、菌核、蘑菇方块、疣块、菌光体、南瓜、西瓜、雪层第 8 层）会在与地形接触处留下可透视的洞，这是资源包机制无法消除的已知代价。
 
-会产生洞的隐藏方块（31）：
+会产生洞的隐藏方块（32）：
 
   `oak_log`, `spruce_log`, `birch_log`, `jungle_log`, `acacia_log`
   `dark_oak_log`, `mangrove_log`, `cherry_log`, `pale_oak_log`, `oak_wood`
@@ -154,7 +167,7 @@
   `mangrove_wood`, `cherry_wood`, `pale_oak_wood`, `crimson_hyphae`, `warped_hyphae`
   `crimson_stem`, `warped_stem`, `brown_mushroom_block`, `red_mushroom_block`, `mushroom_stem`
   `nether_wart_block`, `warped_wart_block`, `shroomlight`, `pumpkin`, `melon`
-  `snow`
+  `muddy_mangrove_roots`, `snow`
 
 ## 版本备注
 
