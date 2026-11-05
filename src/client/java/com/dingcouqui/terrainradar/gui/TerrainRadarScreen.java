@@ -2,9 +2,9 @@ package com.dingcouqui.terrainradar.gui;
 
 import com.dingcouqui.terrainradar.TerrainRadarClient;
 import com.dingcouqui.terrainradar.config.ConfigManager;
-import com.dingcouqui.terrainradar.config.DefaultBlocks;
 import com.dingcouqui.terrainradar.config.Presets;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
@@ -14,17 +14,16 @@ import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.input.KeyInput;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
 /** TerrainRadar 设置界面：两个标签页（设置 / 方块清单），底部「应用 / 返回」。 */
@@ -39,22 +38,35 @@ public class TerrainRadarScreen extends Screen {
     private static final Identifier CHECKBOX_SELECTED = Identifier.ofVanilla("widget/checkbox_selected");
     private static final Identifier CHECKBOX_SELECTED_HIGHLIGHTED = Identifier.ofVanilla("widget/checkbox_selected_highlighted");
     private static final List<String> CATEGORIES = List.of("全部", "树叶", "植物", "树木", "其它");
-    private static final Map<String, String> GROUP_OF = new HashMap<>();
 
-    static {
-        DefaultBlocks.groups().forEach((group, ids) -> ids.forEach(id -> GROUP_OF.put(id, group)));
-    }
+    /**
+     * 不依赖默认清单：用方块 tag + 类名/ID 特征给所有方块分类（包括模组方块）。
+     * 0 = 其它，1 = 树叶，2 = 植物，3 = 树木。
+     */
+    private static int classify(Block block) {
+        BlockState state = block.getDefaultState();
+        String path = Registries.BLOCK.getId(block).getPath();
 
-    /** 把 21 个细分组合并成 4 个可切换分类；0 = 其它。 */
-    private static int groupCategory(String group) {
-        return switch (group) {
-            case "树叶（Leaves）" -> 1;
-            case "原木（Logs）", "木与菌核（Wood & Hyphae）", "菌柄（Stems）" -> 3;
-            case "雪层（Snow Layer）", "竹子（Bamboo）", "甘蔗 / 甜浆果 / 仙人掌（Farm Plants & Cactus）",
-                 "南瓜与西瓜（Gourds）", "蘑菇方块（Mushroom Blocks）", "疣块（Wart Blocks）",
-                 "菌光体（Shroomlight）", "紫颂（Chorus）" -> 0;
-            default -> 2;
-        };
+        if (state.isIn(BlockTags.LEAVES) || path.contains("leaves")) {
+            return 1;
+        }
+        if (state.isIn(BlockTags.LOGS) || path.endsWith("_log") || path.endsWith("_wood")
+                || path.endsWith("_hyphae") || path.startsWith("stripped_")) {
+            return 3;
+        }
+        if (state.isIn(BlockTags.FLOWERS) || state.isIn(BlockTags.SAPLINGS) || state.isIn(BlockTags.CROPS)) {
+            return 2;
+        }
+        // 大蘑菇的方块/柄按"其它"处理，不当作小植物
+        if (path.contains("mushroom") && (path.endsWith("_block") || path.endsWith("_stem"))) {
+            return 0;
+        }
+        if (path.matches(".*(grass|fern|flower|sapling|mushroom|fungus|roots|sprout|vine|kelp|seagrass|"
+                + "dripleaf|blossom|lichen|bush|cactus|chorus|lily_pad|petal|litter|moss|bamboo|sugar_cane|"
+                + "nether_wart|wheat|carrot|potato|beetroot|cocoa|azalea|berry).*")) {
+            return 2;
+        }
+        return 0;
     }
 
     private final Screen parent;
@@ -119,13 +131,10 @@ public class TerrainRadarScreen extends Screen {
 
     private List<Block> filtered() {
         String query = search.trim().toLowerCase(Locale.ROOT);
-        String category = CATEGORIES.get(categoryIndex);
-        int wanted = categoryIndex == 4 ? 0 : categoryIndex;
         List<Block> result = new ArrayList<>();
         for (Block block : allBlocks) {
             String id = Registries.BLOCK.getId(block).toString();
-            String group = GROUP_OF.getOrDefault(id, "其它");
-            if (categoryIndex != 0 && groupCategory(group) != wanted) {
+            if (categoryIndex != 0 && classify(block) != categoryIndex - 1) {
                 continue;
             }            if (!query.isEmpty()) {
                 String name = block.getName().getString().toLowerCase(Locale.ROOT);
