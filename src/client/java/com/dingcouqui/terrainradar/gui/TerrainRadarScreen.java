@@ -12,18 +12,27 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.input.KeyInput;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemGroups;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.resource.featuretoggle.FeatureFlags;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 /** TerrainRadar 设置界面：两个标签页（设置 / 方块清单），底部「应用 / 返回」。 */
@@ -38,66 +47,104 @@ public class TerrainRadarScreen extends Screen {
     private static final Identifier CHECKBOX_SELECTED = Identifier.ofVanilla("widget/checkbox_selected");
     private static final Identifier CHECKBOX_SELECTED_HIGHLIGHTED = Identifier.ofVanilla("widget/checkbox_selected_highlighted");
     private static final List<String> CATEGORIES = List.of(
-            "全部", "树叶", "植物", "树木", "建筑方块", "功能方块", "矿物资源", "其它");
+            "全部", "建筑方块", "染色方块", "自然方块", "功能方块", "红石方块", "其它");
+    private static final List<RegistryKey<ItemGroup>> CREATIVE_GROUPS = List.of(
+            ItemGroups.BUILDING_BLOCKS, ItemGroups.COLORED_BLOCKS, ItemGroups.NATURAL,
+            ItemGroups.FUNCTIONAL, ItemGroups.REDSTONE);
     private static final Set<String> RESOURCE_BLOCKS = Set.of(
             "iron_block", "gold_block", "copper_block", "diamond_block", "emerald_block",
             "lapis_block", "redstone_block", "coal_block", "netherite_block", "quartz_block",
             "amethyst_block", "raw_iron_block", "raw_gold_block", "raw_copper_block",
             "ancient_debris", "resin_block");
-    private static final String[] FUNCTIONAL_KEYWORDS = {
+    private static final Set<String> DYE_COLORS = Set.of(
+            "white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray",
+            "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black");
+    private static final String[] COLORED_SUFFIXES = {
+            "_wool", "_carpet", "_concrete", "_concrete_powder", "_terracotta", "_glazed_terracotta",
+            "_stained_glass", "_stained_glass_pane", "_candle", "_bed", "_banner", "_shulker_box"};
+    private static final String[] REDSTONE_KEYWORDS = {
             "redstone", "piston", "observer", "repeater", "comparator", "dispenser", "dropper",
-            "hopper", "lever", "tripwire", "target", "daylight_detector", "note_block", "jukebox",
-            "lectern", "campfire", "beacon", "conduit", "chest", "furnace", "smoker", "crafting_table",
-            "enchanting_table", "brewing_stand", "cauldron", "barrel", "beehive", "bee_nest",
-            "respawn_anchor", "lodestone", "bell", "grindstone", "smithing_table", "stonecutter",
-            "loom", "cartography_table", "fletching_table", "composter", "tnt", "command_block",
-            "structure_block", "jigsaw", "barrier", "light", "spawner", "portal", "sign"};
+            "hopper", "lever", "button", "pressure_plate", "tripwire", "target", "daylight_detector",
+            "note_block", "redstone_lamp", "rail", "sculk_sensor", "copper_bulb", "lightning_rod", "tnt"};
+    private static final String[] FUNCTIONAL_KEYWORDS = {
+            "crafting_table", "enchanting_table", "brewing_stand", "cauldron", "barrel", "beehive",
+            "bee_nest", "respawn_anchor", "lodestone", "bell", "grindstone", "smithing_table",
+            "stonecutter", "loom", "cartography_table", "fletching_table", "composter", "command_block",
+            "structure_block", "jigsaw", "barrier", "light", "spawner", "portal", "chest", "furnace",
+            "smoker", "lectern", "campfire", "beacon", "conduit", "sign", "bed", "banner",
+            "shulker_box", "anvil", "bookshelf", "decorated_pot", "flower_pot", "jukebox"};
+    private static boolean creativeTabsReady;
+
+    private static boolean ensureCreativeTabs() {
+        if (creativeTabsReady) {
+            return true;
+        }
+        try {
+            ItemGroups.updateDisplayContext(FeatureFlags.DEFAULT_ENABLED_FEATURES, false,
+                    DynamicRegistryManager.of(Registries.REGISTRIES));
+            ItemGroup natural = Registries.ITEM_GROUP.get(ItemGroups.NATURAL);
+            creativeTabsReady = natural != null && !natural.getDisplayStacks().isEmpty();
+            return creativeTabsReady;
+        } catch (Throwable ignored) {
+            // 资源/世界未就绪时无法填充创造模式标签页，退回按 tag + ID 分类
+            return false;
+        }
+    }
 
     /**
-     * 不依赖默认清单：用方块 tag + ID 特征给所有方块分类（包括模组方块）。
-     * 1 = 树叶，2 = 植物，3 = 树木，4 = 建筑方块，5 = 功能方块，6 = 矿物资源，0 = 其它。
+     * 优先按原版创造模式标签页分类（建筑/染色/自然/功能/红石），
+     * 未出现在原版标签页里的方块（如模组方块）再用 tag + ID 兜底。
+     * 1 = 建筑方块，2 = 染色方块，3 = 自然方块，4 = 功能方块，5 = 红石方块，0 = 其它。
      */
-    private static int classify(Block block) {
+    private static int computeCategory(Block block) {
+        Item item = block.asItem();
+        if (creativeTabsReady && item != Items.AIR) {
+            ItemStack stack = new ItemStack(item);
+            for (int i = 0; i < CREATIVE_GROUPS.size(); i++) {
+                ItemGroup group = Registries.ITEM_GROUP.get(CREATIVE_GROUPS.get(i));
+                if (group != null && group.contains(stack)) {
+                    return i + 1;
+                }
+            }
+        }
+        return fallbackClassify(block);
+    }
+
+    private int categoryOf(Block block) {
+        return categoryCache.computeIfAbsent(block, TerrainRadarScreen::computeCategory);
+    }
+
+    private static int fallbackClassify(Block block) {
         BlockState state = block.getDefaultState();
         String path = Registries.BLOCK.getId(block).getPath();
 
-        if (state.isIn(BlockTags.LEAVES) || path.contains("leaves")) {
-            return 1;
-        }
-        if (state.isIn(BlockTags.LOGS) || path.endsWith("_log") || path.endsWith("_wood")
-                || path.endsWith("_hyphae") || path.startsWith("stripped_")) {
-            return 3;
-        }
-        if (state.isIn(BlockTags.FLOWERS) || state.isIn(BlockTags.SAPLINGS) || state.isIn(BlockTags.CROPS)) {
+        if (isColored(path)) {
             return 2;
         }
-        // 大蘑菇的方块/柄按"其它"处理，不当作小植物
-        if (path.contains("mushroom") && (path.endsWith("_block") || path.endsWith("_stem"))) {
-            return 0;
-        }
-        if (path.matches(".*(grass|fern|flower|sapling|mushroom|fungus|roots|sprout|vine|kelp|seagrass|"
-                + "dripleaf|blossom|lichen|bush|cactus|chorus|lily_pad|petal|litter|moss|bamboo|sugar_cane|"
-                + "nether_wart|wheat|carrot|potato|beetroot|cocoa|azalea|berry).*")) {
-            return 2;
-        }
-
-        // 矿物资源：矿石、原矿块、金属/宝石块
-        if (path.contains("_ore") || RESOURCE_BLOCKS.contains(path)) {
-            return 6;
-        }
-
-        // 功能方块：按钮/压力板/铁轨/告示牌 + 红石、容器、工作台等
-        if (state.isIn(BlockTags.BUTTONS) || state.isIn(BlockTags.PRESSURE_PLATES)
-                || state.isIn(BlockTags.RAILS) || state.isIn(BlockTags.SIGNS)) {
-            return 5;
-        }
-        for (String keyword : FUNCTIONAL_KEYWORDS) {
+        for (String keyword : REDSTONE_KEYWORDS) {
             if (path.contains(keyword)) {
                 return 5;
             }
         }
-
-        // 建筑方块：楼梯/台阶/墙/栅栏/门/活板门/木板/羊毛/陶瓦/混凝土/玻璃/砖，以及实心完整方块
+        if (state.isIn(BlockTags.SIGNS)) {
+            return 4;
+        }
+        for (String keyword : FUNCTIONAL_KEYWORDS) {
+            if (path.contains(keyword)) {
+                return 4;
+            }
+        }
+        if (state.isIn(BlockTags.LEAVES) || state.isIn(BlockTags.LOGS) || state.isIn(BlockTags.FLOWERS)
+                || state.isIn(BlockTags.SAPLINGS) || state.isIn(BlockTags.CROPS)
+                || path.contains("leaves") || path.endsWith("_log") || path.endsWith("_wood")
+                || path.endsWith("_hyphae") || path.startsWith("stripped_")
+                || path.contains("_ore") || RESOURCE_BLOCKS.contains(path)
+                || path.matches(".*(grass|fern|flower|sapling|mushroom|fungus|roots|sprout|vine|kelp|"
+                + "seagrass|dripleaf|blossom|lichen|bush|cactus|chorus|lily_pad|petal|litter|moss|"
+                + "bamboo|sugar_cane|nether_wart|wheat|carrot|potato|beetroot|cocoa|azalea|berry|"
+                + "dirt|sand|gravel|stone|snow|ice|clay|mud).*")) {
+            return 3;
+        }
         if (state.isIn(BlockTags.STAIRS) || state.isIn(BlockTags.SLABS) || state.isIn(BlockTags.WALLS)
                 || state.isIn(BlockTags.FENCES) || state.isIn(BlockTags.FENCE_GATES)
                 || state.isIn(BlockTags.DOORS) || state.isIn(BlockTags.TRAPDOORS)
@@ -107,14 +154,26 @@ public class TerrainRadarScreen extends Screen {
                 || path.endsWith("_concrete") || path.contains("glass")
                 || path.endsWith("_bricks") || path.endsWith("_brick") || path.endsWith("_tiles")
                 || state.isOpaqueFullCube()) {
-            return 4;
+            return 1;
         }
         return 0;
+    }
+
+    private static boolean isColored(String path) {
+        for (String color : DYE_COLORS) {
+            for (String suffix : COLORED_SUFFIXES) {
+                if (path.equals(color + suffix)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private final Screen parent;
     private final Set<String> working = new LinkedHashSet<>(ConfigManager.get().hidden);
     private final List<Block> allBlocks = new ArrayList<>();
+    private final Map<Block, Integer> categoryCache = new HashMap<>();
 
     private boolean workingEnabled = ConfigManager.get().enabled;
     private boolean workingLight = ConfigManager.get().lightPassthrough;
@@ -138,6 +197,7 @@ public class TerrainRadarScreen extends Screen {
             }
         }
         allBlocks.sort(Comparator.comparing(block -> Registries.BLOCK.getId(block).toString()));
+        ensureCreativeTabs();
     }
 
     // ---- 布局 ----
@@ -177,8 +237,8 @@ public class TerrainRadarScreen extends Screen {
         List<Block> result = new ArrayList<>();
         for (Block block : allBlocks) {
             String id = Registries.BLOCK.getId(block).toString();
-            int wanted = categoryIndex == 7 ? 0 : categoryIndex;
-            if (categoryIndex != 0 && classify(block) != wanted) {
+            int wanted = categoryIndex == 6 ? 0 : categoryIndex;
+            if (categoryIndex != 0 && categoryOf(block) != wanted) {
                 continue;
             }
             if (!query.isEmpty()) {
