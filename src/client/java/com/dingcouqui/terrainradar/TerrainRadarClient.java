@@ -20,6 +20,7 @@ public final class TerrainRadarClient implements ClientModInitializer {
         ConfigManager.load(LOGGER);
         HiddenBlocks.reload(LOGGER);
         TerrainRadarCommand.register();
+        ToggleKeyBinding.register();
         ClientTickEvents.END_CLIENT_TICK.register(Refresh::tick);
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             HiddenBlocks.reload(LOGGER);
