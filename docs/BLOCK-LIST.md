@@ -1,6 +1,6 @@
 # TerrainRadar 方块清单
 
-> 由 `tools/generate.py` 从 `data/blocks.json` 生成，请勿手改。版本：v0.2.0。
+> 由 `tools/generate.py` 从 `data/blocks.json` 生成，请勿手改。版本：v0.2.1。
 
 - 隐藏方块：**129** 个（另有 1 个旧版本 ID 别名）
 - 支持版本：Java 1.20.2–26.1（单 zip，资源包格式 18–84）
@@ -149,11 +149,13 @@
 
 ### snow-ground（去掉 up 面的 cullface）
 
-雪层会剔除它下方方块的上表面（遮挡形状的面 = 完整方块）。隐藏雪层后，为常常承载积雪的地表方块去掉 up 面的 cullface，让上表面照常渲染，避免雪地出现大片空洞。
+雪层会剔除它下方方块的上表面（遮挡形状的面 = 完整方块）。隐藏雪层后，为常常承载积雪的地表方块去掉 up 面的 cullface，让上表面照常渲染，避免雪地出现大片空洞。含石头/泥土/深板岩等山体方块（代价是这些方块每个多渲染一个面）。
 
   `grass_block`, `podzol`, `mycelium`, `coarse_dirt`
   `pale_moss_block`, `snow_block`, `blue_ice`, `sand`
-  `red_sand`, `gravel`, `farmland`
+  `red_sand`, `gravel`, `farmland`, `stone`
+  `dirt`, `deepslate`, `tuff`, `calcite`
+  `andesite`, `granite`, `diorite`
 
 ## 已知代价：洞（Culling Hole）
 

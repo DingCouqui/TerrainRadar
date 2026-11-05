@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/nocull/cube_all",
+  "textures": {
+    "all": "minecraft:block/calcite"
+  }
+}

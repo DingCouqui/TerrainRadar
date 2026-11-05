@@ -1,0 +1,21 @@
+{
+  "variants": {
+    "": [
+      {
+        "model": "minecraft:block/nocull/dirt"
+      },
+      {
+        "model": "minecraft:block/nocull/dirt",
+        "y": 90
+      },
+      {
+        "model": "minecraft:block/nocull/dirt",
+        "y": 180
+      },
+      {
+        "model": "minecraft:block/nocull/dirt",
+        "y": 270
+      }
+    ]
+  }
+}
