@@ -62,10 +62,23 @@ public final class LightCache {
     }
 
     private static boolean isCoveredByHiddenBlocks(BlockRenderView world, BlockPos pos) {
+        // 注意：chunk 网格构建时传入的是 ChunkRendererRegion（3×3×3 个 section），
+        // 它只覆盖有限的竖直范围，越界 getBlockState 会抛 ArrayIndexOutOfBoundsException。
+        // 这里按世界高度兜底 + 捕获越界，越界位置视为"不提升"（缓存下来避免重复异常）。
+        int topY = world.getBottomY() + world.getHeight() - 1;
         BlockPos.Mutable mutable = new BlockPos.Mutable();
         for (int dy = 1; dy <= SCAN_LIMIT; dy++) {
-            mutable.set(pos.getX(), pos.getY() + dy, pos.getZ());
-            BlockState above = world.getBlockState(mutable);
+            int y = pos.getY() + dy;
+            if (y > topY) {
+                return false;
+            }
+            mutable.set(pos.getX(), y, pos.getZ());
+            BlockState above;
+            try {
+                above = world.getBlockState(mutable);
+            } catch (RuntimeException e) {
+                return false;
+            }
             if (above.isAir()) {
                 continue;
             }
