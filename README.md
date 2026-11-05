@@ -24,13 +24,12 @@ TerrainRadar is a pure client-side rendering mod. It keeps the selected blocks i
 - Minecraft **1.21.11**
 - Fabric Loader **0.17.0+** (0.20.1 used for development)
 - Fabric API **0.141.6+1.21.11**
-- Cloth Config **21.11.153+** (declared dependency; the current custom GUI does not use it yet)
 - Optional: ModMenu **17.0.1+** for the “Config” button in the mod list
 
 ### Installation
 
 1. Install Fabric Loader for Minecraft 1.21.11.
-2. Put Fabric API, Cloth Config, and (optionally) ModMenu into the `mods` folder.
+2. Put Fabric API and (optionally) ModMenu into the `mods` folder.
 3. Put `terrainradar-<version>.jar` into the `mods` folder.
 4. Launch the Fabric 1.21.11 profile.
 
@@ -148,13 +147,12 @@ TerrainRadar 是一个纯客户端渲染模组，适用于 Minecraft **1.21.11**
 - Minecraft **1.21.11**
 - Fabric Loader **0.17.0+**（开发使用 0.20.1）
 - Fabric API **0.141.6+1.21.11**
-- Cloth Config **21.11.153+**（声明的依赖；当前自建 GUI 暂未使用）
 - 可选：ModMenu **17.0.1+**，用于模组列表里的「配置」按钮
 
 ### 安装
 
 1. 为 Minecraft 1.21.11 安装 Fabric Loader。
-2. 把 Fabric API、Cloth Config、以及（可选）ModMenu 放进 `mods` 文件夹。
+2. 把 Fabric API、以及（可选）ModMenu 放进 `mods` 文件夹。
 3. 把 `terrainradar-<version>.jar` 放进 `mods` 文件夹。
 4. 启动 Fabric 1.21.11 配置。
 

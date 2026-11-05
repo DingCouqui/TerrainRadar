@@ -17,7 +17,7 @@ accepted
 
 ## Consequences
 
-- 需要长期维护构建链（Gradle/Loom/Yarn/Fabric API/Cloth Config）与版本适配；资源包时代不需要。
+- 需要长期维护构建链（Gradle/Loom/Yarn/Fabric API）与版本适配；资源包时代不需要。
 - 1.21.11 是最后一个混淆版本；26.x 起去混淆 + Java 25，客户端模组不能跨版本通用，跟版要单独做。
 - 资源包工程归档为 `_legacy-pack-export/`（tag `pack-legacy-v0.2.1`），不再是交付物；`data/blocks.json` 的分类清单被 `data/default-blocks.json` 沿用。
 - 光照首版采用顶点亮度/AO 提亮（不真 relight），因为客户端 relight 可能被服务端 light 包覆盖；这是可感知的折中。

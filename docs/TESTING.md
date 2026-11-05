@@ -1,12 +1,12 @@
-# TerrainRadar MVP 手动测试清单（v0.1.0）
+# TerrainRadar 手动测试清单（v0.2.1）
 
 > 分工：实现方不操作游戏目录。你把 jar 放进实例的 `mods/`，按下面步骤验证。
-> 依赖：Minecraft **1.21.11**、Fabric Loader（≥0.17）、**Fabric API**（0.141.6+1.21.11）。暂时不需要 Cloth Config（GUI 在第二阶段加）。
+> 依赖：Minecraft **1.21.11**、Fabric Loader（≥0.17）、**Fabric API**（0.141.6+1.21.11）；不需要 Cloth Config。
 
 ## 0. 交付物
 
-- `build/libs/terrainradar-0.1.0.jar`
-- 建议测试实例：`D:\Games\Minecraft\Game\.minecraft\versions\1.21.11-Build`（已有 fabric-api 0.141.6 + cloth + modmenu）或新建纯净 1.21.11 Fabric 实例
+- `build/libs/terrainradar-0.2.1.jar`
+- 建议测试实例：`D:\Games\Minecraft\Game\.minecraft\versions\1.21.11-Build`（已有 fabric-api 0.141.6 + modmenu）或新建纯净 1.21.11 Fabric 实例
 - 不要用 `1.21.11-Multi-Version`（168 个 mod，干扰判断）
 
 ## 1. 安装
@@ -39,7 +39,7 @@
 
 ### C2. GUI（v0.2.0）
 
-依赖：**ModMenu 17.0.1**（可选，装了才有模组列表里的配置按钮；没装用 `/terrainradar gui`）。Cloth Config 依赖暂时保留但界面未使用。
+依赖：**ModMenu 17.0.1**（可选，装了才有模组列表里的配置按钮；没装用 `/terrainradar gui`）。
 
 - [ ] ModMenu 模组列表里 TerrainRadar 的「配置」按钮**直接**打开「TerrainRadar 设置」（不再有中转页）
 - [ ] 顶部两个标签页「设置 / 方块清单」可切换

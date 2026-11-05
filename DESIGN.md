@@ -15,7 +15,7 @@
 
 - **Fabric 纯客户端模组**（`environment: client`），服务端不装也能用；不改服务端逻辑、不改碰撞与掉落。
 - 先支持 **Minecraft 1.21.11**（最后一个 1.x 版本，Java 21）。后续是否跟 26.x 另议。
-- 依赖：**Fabric API**、**Cloth Config**（设置页）；ModMenu 可选（方便打开配置）。
+- 依赖：**Fabric API**；ModMenu 可选（方便打开配置）。
 
 ## 3. 隐藏语义
 
@@ -42,13 +42,12 @@
 | 映射 | Yarn `1.21.11+build.6` |
 | Fabric Loader | `0.20.1`（运行时可低至 0.17.x） |
 | Fabric API | `0.141.6+1.21.11` |
-| Cloth Config | `21.11.153`（依赖暂时保留；当前 GUI 为自建 Screen，未使用 Cloth） |
 | ModMenu（可选） | `17.0.1` |
 | Loom | `1.19.3`（官方 1.21.11 模板的 `net.fabricmc.fabric-loom-remap`） |
 | Gradle | 9.8.2 |
 | JDK | 21 |
 
-> MVP 已构建成功（`build/libs/terrainradar-0.2.0.jar`）。构建命令（本机）：
+> MVP 已构建成功（`build/libs/terrainradar-0.2.1.jar`）。构建命令（本机）：
 >
 > ```powershell
 > $env:JAVA_HOME='D:\Games\Minecraft\OtherClients\McHMR\java25'
@@ -78,13 +77,13 @@
 - 1.21.11 纯净 Fabric 环境通过。
 - **2026-11-05 已在 1.21.11 + Fabric API 0.141.6（Indigo）纯净实例实测通过：隐藏、补洞（无洞）、光照穿透差异均符合预期。**
 
-**第二阶段（已实现）**：单界面标签页（设置 / 方块清单）、可滚动清单（滚动条 / PageUp/Down）、预设（植被 / 表层 / 深层）、ModMenu 集成（不设默认键位）。Cloth Config 依赖保留但暂未使用。
+**第二阶段（已实现）**：单界面标签页（设置 / 方块清单）、可滚动清单（滚动条 / PageUp/Down）、预设（植被 / 表层 / 深层）、ModMenu 集成（不设默认键位）。
 
 ## 7. 测试与交付
 
 - 我负责：构建 jar、安装/测试步骤、测试清单、问题修复。
 - 项目所有者负责：把 jar 放进游戏实例（实现方不操作游戏目录）、按清单验证。
-- 测试环境：**纯净 1.21.11 Fabric 实例**（Fabric API；MVP 不需要 Cloth Config/ModMenu），先不装 Sodium/Iris；兼容性验证放到 MVP 之后。
+- 测试环境：**纯净 1.21.11 Fabric 实例**（Fabric API；ModMenu 可选），先不装 Sodium/Iris；兼容性验证放到 MVP 之后。
 
 ## 8. 已知风险
 
