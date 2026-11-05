@@ -1,5 +1,7 @@
 package com.dingcouqui.terrainradar.config;
 
+import net.minecraft.text.Text;
+
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -48,15 +50,45 @@ public final class Presets {
         return NAMES.contains(name);
     }
 
+    /** 把玩家输入（含英文别名）归一化为规范预设名；未知返回 null。 */
+    public static String canonicalName(String rawName) {
+        String name = rawName == null ? "" : rawName.trim();
+        return switch (name.toLowerCase(Locale.ROOT)) {
+            case "植被", "vegetation" -> "植被";
+            case "表层", "surface" -> "表层";
+            case "深层", "deep" -> "深层";
+            default -> null;
+        };
+    }
+
     /** 解析预设名；未知返回 null。返回的 ID 均带命名空间。 */
     public static Set<String> resolve(String rawName) {
-        String name = rawName == null ? "" : rawName.trim();
+        String name = canonicalName(rawName);
+        if (name == null) {
+            return null;
+        }
         return switch (name) {
             case "植被" -> build(CROPS);
             case "表层" -> build(CROPS, SURFACE);
             case "深层" -> build(CROPS, SURFACE, DEEP);
             default -> null;
         };
+    }
+
+    /** 预设名的本地化显示；未知名称原样显示。 */
+    public static Text displayName(String rawName) {
+        String name = canonicalName(rawName);
+        String key = switch (name == null ? "" : name) {
+            case "植被" -> "terrainradar.preset.vegetation";
+            case "表层" -> "terrainradar.preset.surface";
+            case "深层" -> "terrainradar.preset.deep";
+            default -> null;
+        };
+        if (key != null) {
+            return Text.translatable(key);
+        }
+        String raw = rawName == null ? "" : rawName.trim();
+        return CUSTOM.equals(raw) ? Text.translatable("terrainradar.preset.custom") : Text.literal(raw);
     }
 
     @SafeVarargs

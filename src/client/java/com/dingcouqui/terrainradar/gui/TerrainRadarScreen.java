@@ -199,7 +199,7 @@ public class TerrainRadarScreen extends Screen {
     private int listTopOffset = 52;
 
     public TerrainRadarScreen(Screen parent) {
-        super(Text.literal("TerrainRadar 设置"));
+        super(Text.translatable("terrainradar.title"));
         this.parent = parent;
         for (Block block : Registries.BLOCK) {
             if (block.asItem() != Items.AIR) {
@@ -312,18 +312,18 @@ public class TerrainRadarScreen extends Screen {
         int tabW1 = (tabTotal - gap) * 240 / 448;
         int tabW2 = tabTotal - gap - tabW1;
         int tabX = width / 2 - tabTotal / 2;
-        addDrawableChild(ButtonWidget.builder(Text.literal(tab == TAB_SETTINGS ? "» TerrainRadar 设置" : "TerrainRadar 设置"),
+        addDrawableChild(ButtonWidget.builder(tabLabel("terrainradar.tab.settings", tab == TAB_SETTINGS),
                         button -> switchTab(TAB_SETTINGS))
                 .dimensions(tabX, 10, tabW1, 20).build());
-        addDrawableChild(ButtonWidget.builder(Text.literal(tab == TAB_BLOCKS ? "» 方块清单" : "方块清单"),
+        addDrawableChild(ButtonWidget.builder(tabLabel("terrainradar.tab.blocks", tab == TAB_BLOCKS),
                         button -> switchTab(TAB_BLOCKS))
                 .dimensions(tabX + tabW1 + gap, 10, tabW2, 20).build());
 
         // 底部按钮：返回在左、应用在右
         int bottom = height - 30;
-        addDrawableChild(ButtonWidget.builder(Text.literal("返回"), button -> close())
+        addDrawableChild(ButtonWidget.builder(Text.translatable("terrainradar.button.back"), button -> close())
                 .dimensions(width / 2 - 105, bottom, 100, 20).build());
-        addDrawableChild(ButtonWidget.builder(Text.literal("应用"), button -> applyAndKeepOpen())
+        addDrawableChild(ButtonWidget.builder(Text.translatable("terrainradar.button.apply"), button -> applyAndKeepOpen())
                 .dimensions(width / 2 + 5, bottom, 100, 20).build());
 
         if (tab == TAB_SETTINGS) {
@@ -350,13 +350,30 @@ public class TerrainRadarScreen extends Screen {
     }
 
     private Text toggleText(boolean on) {
-        return Text.literal(on ? "开" : "关");
+        return Text.translatable(on ? "terrainradar.option.on" : "terrainradar.option.off");
+    }
+
+    private static Text tabLabel(String key, boolean active) {
+        return active ? Text.literal("» ").append(Text.translatable(key)) : Text.translatable(key);
+    }
+
+    private static Text categoryText(int index) {
+        String key = switch (index) {
+            case 1 -> "terrainradar.category.building";
+            case 2 -> "terrainradar.category.colored";
+            case 3 -> "terrainradar.category.natural";
+            case 4 -> "terrainradar.category.functional";
+            case 5 -> "terrainradar.category.redstone";
+            case 6 -> "terrainradar.category.other";
+            default -> "terrainradar.category.all";
+        };
+        return Text.translatable(key);
     }
 
     private void initBlocks(int left, int w) {
         int top = contentTop();
         searchField = new TextFieldWidget(textRenderer, left, top, Math.max(80, w - 170), 20,
-                Text.literal("搜索方块 ID / 名称"));
+                Text.translatable("terrainradar.search.placeholder"));
         searchField.setText(search);
         searchField.setChangedListener(value -> {
             search = value == null ? "" : value;
@@ -364,7 +381,7 @@ public class TerrainRadarScreen extends Screen {
         });
         addDrawableChild(searchField);
 
-        addDrawableChild(ButtonWidget.builder(Text.literal("分类：" + CATEGORIES.get(categoryIndex)),
+        addDrawableChild(ButtonWidget.builder(Text.translatable("terrainradar.category.button", categoryText(categoryIndex)),
                         button -> {
                             categoryIndex = (categoryIndex + 1) % CATEGORIES.size();
                             scroll = 0;
@@ -399,7 +416,7 @@ public class TerrainRadarScreen extends Screen {
 
     private void addPresetButton(int x, int y, int width, int index) {
         String name = Presets.NAMES.get(index);
-        addDrawableChild(ButtonWidget.builder(Text.literal("预设：" + name), button -> {
+        addDrawableChild(ButtonWidget.builder(Text.translatable("terrainradar.preset.button", Presets.displayName(name)), button -> {
                     Set<String> preset = Presets.resolve(name);
                     if (preset != null) {
                         working.clear();
@@ -411,14 +428,14 @@ public class TerrainRadarScreen extends Screen {
     }
 
     private void addSelectButtons(int x, int y, int selectAllWidth, int invertWidth) {
-        addDrawableChild(ButtonWidget.builder(Text.literal("全选"), button -> {
+        addDrawableChild(ButtonWidget.builder(Text.translatable("terrainradar.button.select_all"), button -> {
                     for (Block block : filtered()) {
                         working.add(Registries.BLOCK.getId(block).toString());
                     }
                     selectedPreset = Presets.CUSTOM;
                 })
                 .dimensions(x, y, selectAllWidth, 18).build());
-        addDrawableChild(ButtonWidget.builder(Text.literal("反选"), button -> {
+        addDrawableChild(ButtonWidget.builder(Text.translatable("terrainradar.button.invert"), button -> {
                     for (Block block : filtered()) {
                         String id = Registries.BLOCK.getId(block).toString();
                         if (!working.remove(id)) {
@@ -462,18 +479,18 @@ public class TerrainRadarScreen extends Screen {
 
         if (tab == TAB_SETTINGS) {
             int rowY = settingsRowY();
-            context.drawTextWithShadow(textRenderer, Text.literal("隐藏方块（总开关）"), left + 10, rowY + 6, 0xFFFFFFFF);
-            context.drawTextWithShadow(textRenderer, Text.literal("光照穿透（去除天光遮挡与 AO 阴影）"),
+            context.drawTextWithShadow(textRenderer, Text.translatable("terrainradar.option.enabled"), left + 10, rowY + 6, 0xFFFFFFFF);
+            context.drawTextWithShadow(textRenderer, Text.translatable("terrainradar.option.light"),
                     left + 10, rowY + 40, 0xFFFFFFFF);
             context.drawTextWithShadow(textRenderer,
-                    Text.literal("修改完点「应用」生效，点「返回」放弃修改。当前清单：" + working.size() + " 个方块"),
+                    Text.translatable("terrainradar.hint.settings", working.size()),
                     left + 10, rowY + 86, 0xFFA0A0A0);
         } else {
             renderBlockList(context, left, w, mouseX, mouseY);
         }
 
         if (appliedFlash) {
-            context.drawCenteredTextWithShadow(textRenderer, Text.literal("已应用"), width / 2, height - 50, 0xFF55FF55);
+            context.drawCenteredTextWithShadow(textRenderer, Text.translatable("terrainradar.applied"), width / 2, height - 50, 0xFF55FF55);
         }
     }
 
@@ -496,8 +513,7 @@ public class TerrainRadarScreen extends Screen {
             drawRow(context, left + 6, rowY, selected, id + " · " + block.getName().getString(), mouseX, mouseY);
         }
         context.drawTextWithShadow(textRenderer,
-                Text.literal("已选 " + working.size() + " / 匹配 " + blocks.size()
-                        + " ｜ 滚轮、PageUp/Down、拖动滚动条"),
+                Text.translatable("terrainradar.list.status", working.size(), blocks.size()),
                 left + 4, bottom + 4, 0xFFA0A0A0);
 
         // 滚动条

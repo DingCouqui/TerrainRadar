@@ -3,7 +3,7 @@
   "id": "terrainradar",
   "version": "${version}",
   "name": "TerrainRadar",
-  "description": "隐藏指定方块的渲染，显露真实地形。纯客户端 Fabric 模组。",
+  "description": "Hides the rendering of specified blocks, revealing the real terrain. A pure client-side Fabric mod.",
   "authors": ["DingCouqui"],
   "environment": "client",
   "entrypoints": {

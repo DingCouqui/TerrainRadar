@@ -20,7 +20,7 @@ import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Set;
 
-/** /terrainradar 客户端命令（MVP 阶段替代 GUI）。 */
+/** /terrainradar 客户端命令。 */
 public final class TerrainRadarCommand {
     private TerrainRadarCommand() {
     }
@@ -46,6 +46,15 @@ public final class TerrainRadarCommand {
                                         .executes(ctx -> remove(ctx.getSource(), StringArgumentType.getString(ctx, "block")))))
                         .then(ClientCommandManager.literal("preset")
                                 .then(ClientCommandManager.argument("name", StringArgumentType.string())
+                                        .suggests((ctx, builder) -> {
+                                            for (String name : Presets.NAMES) {
+                                                builder.suggest(name);
+                                            }
+                                            builder.suggest("vegetation");
+                                            builder.suggest("surface");
+                                            builder.suggest("deep");
+                                            return builder.buildFuture();
+                                        })
                                         .executes(ctx -> preset(ctx.getSource(), StringArgumentType.getString(ctx, "name")))))
                         .then(ClientCommandManager.literal("list").executes(ctx -> list(ctx.getSource())))
                         .then(ClientCommandManager.literal("gui").executes(ctx -> openGui()))
@@ -54,61 +63,62 @@ public final class TerrainRadarCommand {
     }
 
     private static int status(FabricClientCommandSource source) {
-        int count = ConfigManager.get().hidden.size();
-        source.sendFeedback(Text.literal(String.format(Locale.ROOT,
-                "TerrainRadar: %s | 隐藏 %d 个方块 | 光照穿透 %s | 预设 %s",
-                ConfigManager.get().enabled ? "开启" : "关闭",
-                count,
-                ConfigManager.get().lightPassthrough ? "开" : "关",
-                ConfigManager.get().preset)));
+        source.sendFeedback(Text.translatable("terrainradar.command.status",
+                Text.translatable(ConfigManager.get().enabled ? "terrainradar.state.on" : "terrainradar.state.off"),
+                ConfigManager.get().hidden.size(),
+                Text.translatable(ConfigManager.get().lightPassthrough
+                        ? "terrainradar.state.on" : "terrainradar.state.off"),
+                Presets.displayName(ConfigManager.get().preset)));
         if (!HiddenBlocks.missingIds().isEmpty()) {
-            source.sendFeedback(Text.literal("无法解析的 ID：" + HiddenBlocks.missingIds()));
+            source.sendFeedback(Text.translatable("terrainradar.command.missing_ids", HiddenBlocks.missingIds()));
         }
-        source.sendFeedback(Text.literal("配置：" + ConfigManager.path()));
+        source.sendFeedback(Text.translatable("terrainradar.command.config_path", ConfigManager.path()));
         return 1;
     }
 
     private static int setEnabled(FabricClientCommandSource source, boolean enabled) {
         ConfigManager.get().enabled = enabled;
         apply();
-        source.sendFeedback(Text.literal("TerrainRadar 已" + (enabled ? "开启" : "关闭")));
+        source.sendFeedback(Text.translatable(
+                enabled ? "terrainradar.command.enabled" : "terrainradar.command.disabled"));
         return 1;
     }
 
     private static int setLight(FabricClientCommandSource source, boolean enabled) {
         ConfigManager.get().lightPassthrough = enabled;
         apply();
-        source.sendFeedback(Text.literal("光照穿透已" + (enabled ? "开启" : "关闭")));
+        source.sendFeedback(Text.translatable(
+                enabled ? "terrainradar.command.light_on" : "terrainradar.command.light_off"));
         return 1;
     }
 
     private static int add(FabricClientCommandSource source, String rawId) {
         Identifier id = Identifier.tryParse(rawId.toLowerCase(Locale.ROOT));
         if (id == null || Registries.BLOCK.get(id) == null) {
-            source.sendError(Text.literal("找不到方块：" + rawId));
+            source.sendError(Text.translatable("terrainradar.command.block_not_found", rawId));
             return 0;
         }
         ConfigManager.get().hidden.add(id.toString());
-        ConfigManager.get().preset = "自定义";
+        ConfigManager.get().preset = Presets.CUSTOM;
         apply();
-        source.sendFeedback(Text.literal("已加入隐藏清单：" + id));
+        source.sendFeedback(Text.translatable("terrainradar.command.added", id));
         return 1;
     }
 
     private static int remove(FabricClientCommandSource source, String rawId) {
         Identifier id = Identifier.tryParse(rawId.toLowerCase(Locale.ROOT));
         if (id == null) {
-            source.sendError(Text.literal("无效的方块 ID：" + rawId));
+            source.sendError(Text.translatable("terrainradar.command.invalid_id", rawId));
             return 0;
         }
         boolean removed = ConfigManager.get().hidden.remove(id.toString());
         if (!removed) {
-            source.sendError(Text.literal("清单里没有：" + id));
+            source.sendError(Text.translatable("terrainradar.command.not_in_list", id));
             return 0;
         }
-        ConfigManager.get().preset = "自定义";
+        ConfigManager.get().preset = Presets.CUSTOM;
         apply();
-        source.sendFeedback(Text.literal("已移出隐藏清单：" + id));
+        source.sendFeedback(Text.translatable("terrainradar.command.removed", id));
         return 1;
     }
 
@@ -116,22 +126,29 @@ public final class TerrainRadarCommand {
         String name = rawName.trim();
         Set<String> ids = Presets.resolve(name);
         if (ids == null) {
-            source.sendError(Text.literal("未知预设：" + name + "（可用：植被 / 表层 / 深层）"));
+            source.sendError(Text.translatable("terrainradar.command.unknown_preset", name,
+                    Text.translatable("terrainradar.preset.vegetation"),
+                    Text.translatable("terrainradar.preset.surface"),
+                    Text.translatable("terrainradar.preset.deep")));
             return 0;
         }
+        String canonical = Presets.canonicalName(name);
         ConfigManager.get().hidden = new LinkedHashSet<>(ids);
-        ConfigManager.get().preset = name;
+        ConfigManager.get().preset = canonical;
         apply();
-        source.sendFeedback(Text.literal("已应用预设「" + name + "」，共 " + ids.size() + " 个方块"));
+        source.sendFeedback(Text.translatable("terrainradar.command.preset_applied",
+                Presets.displayName(canonical), ids.size()));
         return 1;
     }
 
     private static int list(FabricClientCommandSource source) {
-        source.sendFeedback(Text.literal("共 " + ConfigManager.get().hidden.size() + " 个隐藏方块："));
+        source.sendFeedback(Text.translatable(
+                "terrainradar.command.list_header", ConfigManager.get().hidden.size()));
         int index = 0;
         for (String id : ConfigManager.get().hidden) {
             if (index++ >= 20) {
-                source.sendFeedback(Text.literal("……（完整清单见 " + ConfigManager.path() + "）"));
+                source.sendFeedback(Text.translatable(
+                        "terrainradar.command.list_more", ConfigManager.path()));
                 break;
             }
             source.sendFeedback(Text.literal(" - " + id));
@@ -144,7 +161,7 @@ public final class TerrainRadarCommand {
         HiddenBlocks.reload(TerrainRadarClient.LOGGER);
         LightCache.invalidate();
         Refresh.request();
-        source.sendFeedback(Text.literal("已重新读取配置"));
+        source.sendFeedback(Text.translatable("terrainradar.command.reloaded"));
         return 1;
     }
 

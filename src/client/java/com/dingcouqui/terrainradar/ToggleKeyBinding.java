@@ -38,6 +38,6 @@ public final class ToggleKeyBinding {
         ConfigManager.get().enabled = enabled;
         TerrainRadarClient.applyChange();
         client.inGameHud.setOverlayMessage(
-                Text.literal("TerrainRadar " + (enabled ? "已开启" : "已关闭")), false);
+                Text.translatable(enabled ? "terrainradar.toggle.enabled" : "terrainradar.toggle.disabled"), false);
     }
 }
