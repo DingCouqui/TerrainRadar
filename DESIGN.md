@@ -26,11 +26,11 @@
 
 ## 4. 清单、配置、GUI 与命令
 
-- **默认清单**：`data/default-blocks.json`（21 个分类、129 个方块 ID，沿用资源包时代的清单）。
+- **默认清单**：`src/main/resources/terrainradar/default-blocks.json`（21 个分类、129 个方块 ID，沿用资源包时代的清单）。
 - **全局配置**：`config/terrainradar.json`。
-- **GUI**：Cloth Config 设置页（总开关、光照穿透、键位）+ 自建「方块清单」页（搜索、分类、勾选、全选/反选、预设）。
+- **GUI（第二阶段）**：Cloth Config 设置页（总开关、光照穿透）+ 自建「方块清单」页（搜索、分类、勾选、全选/反选、预设）；通过 **ModMenu** 打开。
 - **命令**：`/terrainradar` 客户端命令（`on` / `off` / `toggle` / `gui` / `add` / `remove` / `preset` / `list` / `reload`）。
-- **键位**：可配置，默认键位在 GUI 设计时定（避免与常见模组冲突）。
+- **键位**：**不设置默认键位**（避免冲突）；GUI 通过 ModMenu 或 `/terrainradar` 命令打开。
 
 ## 5. 技术基线（均已核实）
 
@@ -41,23 +41,29 @@
 | Fabric Loader | `0.20.1`（运行时可低至 0.17.x） |
 | Fabric API | `0.141.6+1.21.11` |
 | Cloth Config | `21.11.153` |
-| Loom | `1.13.3`（本机已用它成功构建出本模组骨架；Fabric API 0.141.6 由 Loom 1.13.3 构建，1.12 会拒绝） |
-| Gradle | 9.6.1 |
+| Loom | `1.19.3`（官方 1.21.11 模板的 `net.fabricmc.fabric-loom-remap`） |
+| Gradle | 9.8.2 |
 | JDK | 21 |
 
-> 当前骨架已 `gradle build` 成功（`build/libs/terrainradar-0.1.0.jar`），构建链验证通过。
+> MVP 已构建成功（`build/libs/terrainradar-0.1.0.jar`）。构建命令（本机）：
+>
+> ```powershell
+> $env:JAVA_HOME='D:\Games\Minecraft\OtherClients\McHMR\java25'
+> .\gradlew.bat build "-Dorg.gradle.java.installations.paths=C:\Program Files\Microsoft\jdk-21.0.10.7-hotspot"
+> ```
+>
+> Loom 1.19.3 要求构建 JVM 为 Java 25（Loom 自身的类要求 JVM 25），项目用 Java 21 toolchain 编译；`gradlew` 首次会下载 Gradle 9.8.2（约 150MB）。
 
 实现路径（有开源先例，见 `docs/adr/0004`）：
 
-- 隐藏渲染：mixin `Block.shouldDrawSide`（面级）+ `ModelBlockRenderer` 的面剔除判定 + `BlockRenderManager.renderBlock` 取消整块（兜底 `cull=false` 通路）。
-- 补洞：仅当"造成遮挡的邻居被隐藏"时反转剔除结果，不要无条件放行（否则玻璃/树叶内面重复）。
-- 光照：首版用顶点亮度/AO 提亮（稳、有先例）；真 relight（`LightingProvider` 级）作为后续实验，因为可能被服务端 light 包覆盖。
-- 刷新：`WorldRenderer.scheduleChunkRender*` 精确标脏，避免 `reload()` 全量重建。
+- 隐藏渲染与补洞：mixin `Block.shouldDrawSide`（邻居被隐藏时反转剔除结果，只反转这一种情况）+ `BlockRenderManager.renderBlock` 整块跳过（覆盖 `cull=false` 通路）。实测反编译源码：`BlockModelRenderer.shouldDrawFace` 最终就是调用 `Block.shouldDrawSide`，不需要单独注入。
+- 光照：mixin `WorldRenderer.getLightmapCoordinates`，当渲染位置正上方存在隐藏方块时把天光分量补到 15（线程本地缓存，配置变化时失效）；不做真 relight。
+- 刷新：配置变化合并到下一 tick，调用 `worldRenderer.reload()`（MVP 采用简单方案；后续可换 `scheduleChunkRender*` 精确标脏）。
 - 配置：`FabricLoader.getInstance().getConfigDir()` + Gson。
 
 ## 6. MVP 范围与验收
 
-**MVP（第一阶段）**：隐藏渲染 + 补洞 + 光照穿透 + 默认清单 + JSON 配置 + 客户端命令；不含 GUI。
+**MVP（第一阶段）**：隐藏渲染 + 补洞 + 光照穿透 + 默认清单 + JSON 配置 + 客户端命令；不含 GUI、不含默认键位。
 
 验收标准：
 
@@ -68,13 +74,13 @@
 - 无明显掉帧、无崩溃、日志无 mixin 失败；
 - 1.21.11 纯净 Fabric 环境通过。
 
-**完整版（第二阶段）**：Cloth Config 设置页、自建可搜索清单页、预设、键位、ModMenu 集成。
+**完整版（第二阶段）**：Cloth Config 设置页、自建可搜索清单页、预设、ModMenu 集成（不设默认键位）。
 
 ## 7. 测试与交付
 
 - 我负责：构建 jar、安装/测试步骤、测试清单、问题修复。
 - 项目所有者负责：把 jar 放进游戏实例（实现方不操作游戏目录）、按清单验证。
-- 测试环境：**纯净 1.21.11 Fabric 实例**（Fabric API + Cloth Config，可选 ModMenu），先不装 Sodium/Iris；兼容性验证放到 MVP 之后。
+- 测试环境：**纯净 1.21.11 Fabric 实例**（Fabric API；MVP 不需要 Cloth Config/ModMenu），先不装 Sodium/Iris；兼容性验证放到 MVP 之后。
 
 ## 8. 已知风险
 

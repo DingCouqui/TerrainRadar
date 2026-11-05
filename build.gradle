@@ -1,11 +1,22 @@
 plugins {
-    id 'fabric-loom' version '1.13.3'
+    id 'net.fabricmc.fabric-loom-remap' version '1.19.3'
     id 'maven-publish'
 }
 
 version = project.mod_version
 base {
     archivesName = 'terrainradar'
+}
+
+loom {
+    splitEnvironmentSourceSets()
+
+    mods {
+        "terrainradar" {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.client
+        }
+    }
 }
 
 repositories {
@@ -19,7 +30,6 @@ dependencies {
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-    modImplementation "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}"
 }
 
 processResources {
@@ -27,6 +37,10 @@ processResources {
     filesMatching('fabric.mod.json') {
         expand version: project.version
     }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
 }
 
 java {

@@ -1,16 +1,38 @@
 package com.dingcouqui.terrainradar;
 
+import com.dingcouqui.terrainradar.command.TerrainRadarCommand;
+import com.dingcouqui.terrainradar.config.ConfigManager;
+import com.dingcouqui.terrainradar.hidden.HiddenBlocks;
+import com.dingcouqui.terrainradar.mixin.WorldRendererMixin;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** 客户端入口。MVP 阶段先只做加载日志，具体功能按设计文档分步实现。 */
+/** 客户端入口。 */
 public final class TerrainRadarClient implements ClientModInitializer {
     public static final String MOD_ID = "terrainradar";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     @Override
     public void onInitializeClient() {
-        LOGGER.info("TerrainRadar client initialized (skeleton)");
+        ConfigManager.load(LOGGER);
+        HiddenBlocks.reload(LOGGER);
+        TerrainRadarCommand.register();
+        ClientTickEvents.END_CLIENT_TICK.register(Refresh::tick);
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            HiddenBlocks.reload(LOGGER);
+            WorldRendererMixin.invalidate();
+        });
+        LOGGER.info("TerrainRadar loaded: {} hidden block ids", HiddenBlocks.ids().size());
+    }
+
+    /** 配置或隐藏集合变化后统一调用：保存、重解析、让缓冲区重建。 */
+    public static void applyChange() {
+        ConfigManager.save(LOGGER);
+        HiddenBlocks.reload(LOGGER);
+        WorldRendererMixin.invalidate();
+        Refresh.request();
     }
 }

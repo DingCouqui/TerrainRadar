@@ -9,11 +9,11 @@
   "entrypoints": {
     "client": ["com.dingcouqui.terrainradar.TerrainRadarClient"]
   },
+  "mixins": ["terrainradar.mixins.json"],
   "icon": "assets/terrainradar/icon.png",
   "depends": {
     "fabricloader": ">=0.17.0",
     "minecraft": "1.21.11",
-    "fabric-api": "*",
-    "cloth-config": ">=21.11.153"
+    "fabric-api": "*"
   }
 }
