@@ -1,6 +1,6 @@
 # TerrainRadar 设计规格（Fabric 客户端模组）
 
-> v0.1.0-draft（2026-11-05）。资源包工程已归档到 `_legacy-pack-export/`（git tag `pack-legacy-v0.2.1`），由项目所有者剪切走。
+> v0.2.0-dev（2026-11-05）。资源包工程已归档到 `_legacy-pack-export/`（git tag `pack-legacy-v0.2.1`），由项目所有者剪切走。
 > 本文件描述 mod 的设计；实现细节以本文件、`GLOSSARY.md`、`docs/adr/` 为准。
 
 ## 1. 目标
