@@ -195,7 +195,7 @@ public class BlockListScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        renderBackground(context, mouseX, mouseY, delta);
+        // 1.21.11 的 renderWithTooltip 已经调用了 renderBackground（含 blur），这里不要再调。
         super.render(context, mouseX, mouseY, delta);
         List<Block> matches = filtered();
         int total = matches.size();

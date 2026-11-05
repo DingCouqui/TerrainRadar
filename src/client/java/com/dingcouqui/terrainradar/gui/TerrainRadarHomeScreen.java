@@ -30,7 +30,7 @@ public class TerrainRadarHomeScreen extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        renderBackground(context, mouseX, mouseY, delta);
+        // 1.21.11 的 renderWithTooltip 已经调用了 renderBackground（含 blur），这里不要再调。
         super.render(context, mouseX, mouseY, delta);
         context.drawCenteredTextWithShadow(textRenderer, title, width / 2, height / 2 - 84, 0xFFFFFF);
         context.drawCenteredTextWithShadow(textRenderer,
