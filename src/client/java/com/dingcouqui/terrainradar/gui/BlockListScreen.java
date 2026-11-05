@@ -94,7 +94,7 @@ public class BlockListScreen extends Screen {
         searchField.setChangedListener(value -> {
             search = value == null ? "" : value;
             page = 0;
-            clearAndInit();
+            rebuild();
         });
         addDrawableChild(searchField);
 
@@ -102,7 +102,7 @@ public class BlockListScreen extends Screen {
                         button -> {
                             categoryIndex = (categoryIndex + 1) % CATEGORIES.size();
                             page = 0;
-                            clearAndInit();
+                            rebuild();
                         })
                 .dimensions(left + 308, top, 112, 20).build());
 
@@ -110,14 +110,14 @@ public class BlockListScreen extends Screen {
         addDrawableChild(ButtonWidget.builder(Text.literal("< 上一页"), button -> {
                     if (page > 0) {
                         page--;
-                        clearAndInit();
+                        rebuild();
                     }
                 })
                 .dimensions(left, top + 26, 70, 18).build());
         addDrawableChild(ButtonWidget.builder(Text.literal("下一页 >"), button -> {
                     if (page < maxPage) {
                         page++;
-                        clearAndInit();
+                        rebuild();
                     }
                 })
                 .dimensions(left + 338, top + 26, 82, 18).build());
@@ -131,7 +131,7 @@ public class BlockListScreen extends Screen {
                         if (preset != null) {
                             working.clear();
                             working.addAll(preset);
-                            clearAndInit();
+                            rebuild();
                         }
                     })
                     .dimensions(centerX - 90 + (i - 1) * 120, presetY, 110, 18).build());
@@ -169,7 +169,7 @@ public class BlockListScreen extends Screen {
                     for (Block block : filtered()) {
                         working.add(Registries.BLOCK.getId(block).toString());
                     }
-                    clearAndInit();
+                    rebuild();
                 })
                 .dimensions(left, bottom, 130, 20).build());
         addDrawableChild(ButtonWidget.builder(Text.literal("反选"), button -> {
@@ -179,7 +179,7 @@ public class BlockListScreen extends Screen {
                             working.add(id);
                         }
                     }
-                    clearAndInit();
+                    rebuild();
                 })
                 .dimensions(left + 136, bottom, 60, 20).build());
         addDrawableChild(ButtonWidget.builder(Text.literal("应用"), button -> {
@@ -206,6 +206,11 @@ public class BlockListScreen extends Screen {
         context.drawTextWithShadow(textRenderer,
                 Text.literal("已选 " + working.size() + " 个方块（应用后生效）"),
                 width / 2 - 210, height - 46, 0xA0A0A0);
+    }
+
+    /** 延迟到下一 tick 重建界面，避免在控件回调里直接替换子控件导致并发修改。 */
+    private void rebuild() {
+        this.client.execute(this::clearAndInit);
     }
 
     @Override
