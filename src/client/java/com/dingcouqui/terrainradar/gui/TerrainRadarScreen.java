@@ -96,22 +96,30 @@ public class TerrainRadarScreen extends Screen {
      * 未出现在原版标签页里的方块（如模组方块）再用 tag + ID 兜底。
      * 1 = 建筑方块，2 = 染色方块，3 = 自然方块，4 = 功能方块，5 = 红石方块，0 = 其它。
      */
-    private static int computeCategory(Block block) {
+    private static int computeCategories(Block block) {
+        int mask = 0;
         Item item = block.asItem();
         if (creativeTabsReady && item != Items.AIR) {
             ItemStack stack = new ItemStack(item);
             for (int i = 0; i < CREATIVE_GROUPS.size(); i++) {
                 ItemGroup group = Registries.ITEM_GROUP.get(CREATIVE_GROUPS.get(i));
                 if (group != null && group.contains(stack)) {
-                    return i + 1;
+                    mask |= 1 << (i + 1);
                 }
             }
         }
-        return fallbackClassify(block);
+        if (mask == 0) {
+            int fallback = fallbackClassify(block);
+            if (fallback != 0) {
+                mask = 1 << fallback;
+            }
+        }
+        return mask;
     }
 
-    private int categoryOf(Block block) {
-        return categoryCache.computeIfAbsent(block, TerrainRadarScreen::computeCategory);
+    /** 返回分类位掩码：bit1=建筑，bit2=染色，bit3=自然，bit4=功能，bit5=红石；0=其它。 */
+    private int categoriesOf(Block block) {
+        return categoryCache.computeIfAbsent(block, TerrainRadarScreen::computeCategories);
     }
 
     private static int fallbackClassify(Block block) {
@@ -237,8 +245,12 @@ public class TerrainRadarScreen extends Screen {
         List<Block> result = new ArrayList<>();
         for (Block block : allBlocks) {
             String id = Registries.BLOCK.getId(block).toString();
-            int wanted = categoryIndex == 6 ? 0 : categoryIndex;
-            if (categoryIndex != 0 && categoryOf(block) != wanted) {
+            int mask = categoriesOf(block);
+            if (categoryIndex == 6) {
+                if (mask != 0) {
+                    continue;
+                }
+            } else if (categoryIndex != 0 && (mask & (1 << categoryIndex)) == 0) {
                 continue;
             }
             if (!query.isEmpty()) {
