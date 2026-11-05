@@ -1,7 +1,0 @@
-{
-  "variants": {
-    "": {
-      "model": "minecraft:block/nocull/coarse_dirt"
-    }
-  }
-}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "terrainradar",
+  "version": "${version}",
+  "name": "TerrainRadar",
+  "description": "隐藏指定方块的渲染，显露真实地形。纯客户端 Fabric 模组。",
+  "authors": ["DingCouqui"],
+  "environment": "client",
+  "entrypoints": {
+    "client": ["com.dingcouqui.terrainradar.TerrainRadarClient"]
+  },
+  "icon": "assets/terrainradar/icon.png",
+  "depends": {
+    "fabricloader": ">=0.17.0",
+    "minecraft": "1.21.11",
+    "fabric-api": "*",
+    "cloth-config": ">=21.11.153"
+  }
+}

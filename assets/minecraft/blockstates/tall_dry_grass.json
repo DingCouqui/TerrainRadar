@@ -1,9 +1,0 @@
-{
-  "multipart": [
-    {
-      "apply": {
-        "model": "minecraft:block/terrainradar/tall_dry_grass"
-      }
-    }
-  ]
-}

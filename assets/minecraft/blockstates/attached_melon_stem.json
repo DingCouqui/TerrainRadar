@@ -1,9 +1,0 @@
-{
-  "multipart": [
-    {
-      "apply": {
-        "model": "minecraft:block/terrainradar/attached_melon_stem"
-      }
-    }
-  ]
-}

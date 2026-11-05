@@ -1,9 +1,0 @@
-{
-  "multipart": [
-    {
-      "apply": {
-        "model": "minecraft:block/terrainradar/muddy_mangrove_roots"
-      }
-    }
-  ]
-}

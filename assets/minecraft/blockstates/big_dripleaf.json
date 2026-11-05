@@ -1,9 +1,0 @@
-{
-  "multipart": [
-    {
-      "apply": {
-        "model": "minecraft:block/terrainradar/big_dripleaf"
-      }
-    }
-  ]
-}

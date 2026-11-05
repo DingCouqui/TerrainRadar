@@ -1,0 +1,239 @@
+{
+  "version": 1,
+  "groups": [
+    {
+      "name": "树叶（Leaves）",
+      "blocks": [
+        "oak_leaves",
+        "spruce_leaves",
+        "birch_leaves",
+        "jungle_leaves",
+        "acacia_leaves",
+        "dark_oak_leaves",
+        "mangrove_leaves",
+        "cherry_leaves",
+        "azalea_leaves",
+        "flowering_azalea_leaves",
+        "pale_oak_leaves"
+      ]
+    },
+    {
+      "name": "草本与枯灌木（Grasses）",
+      "blocks": [
+        "short_grass",
+        "tall_grass",
+        "fern",
+        "large_fern",
+        "dead_bush"
+      ]
+    },
+    {
+      "name": "花卉（Flowers）",
+      "blocks": [
+        "dandelion",
+        "poppy",
+        "blue_orchid",
+        "allium",
+        "azure_bluet",
+        "red_tulip",
+        "orange_tulip",
+        "white_tulip",
+        "pink_tulip",
+        "oxeye_daisy",
+        "cornflower",
+        "lily_of_the_valley",
+        "wither_rose",
+        "torchflower",
+        "pitcher_plant",
+        "closed_eyeblossom",
+        "open_eyeblossom",
+        "golden_dandelion",
+        "cactus_flower",
+        "sunflower",
+        "lilac",
+        "rose_bush",
+        "peony",
+        "pink_petals",
+        "wildflowers"
+      ]
+    },
+    {
+      "name": "树苗（Saplings）",
+      "blocks": [
+        "oak_sapling",
+        "spruce_sapling",
+        "birch_sapling",
+        "jungle_sapling",
+        "acacia_sapling",
+        "dark_oak_sapling",
+        "cherry_sapling",
+        "pale_oak_sapling",
+        "mangrove_propagule",
+        "bamboo_sapling"
+      ]
+    },
+    {
+      "name": "菌类与下界植物（Fungi & Nether Plants）",
+      "blocks": [
+        "brown_mushroom",
+        "red_mushroom",
+        "crimson_fungus",
+        "warped_fungus",
+        "nether_sprouts",
+        "crimson_roots",
+        "warped_roots"
+      ]
+    },
+    {
+      "name": "藤蔓与贴面植物（Vines & Attached Plants）",
+      "blocks": [
+        "vine",
+        "glow_lichen",
+        "hanging_roots",
+        "cave_vines",
+        "cave_vines_plant",
+        "weeping_vines",
+        "weeping_vines_plant",
+        "twisting_vines",
+        "twisting_vines_plant",
+        "big_dripleaf",
+        "big_dripleaf_stem",
+        "small_dripleaf",
+        "spore_blossom"
+      ]
+    },
+    {
+      "name": "水生植物（Aquatic Plants）",
+      "blocks": [
+        "seagrass",
+        "tall_seagrass",
+        "kelp",
+        "kelp_plant",
+        "lily_pad"
+      ]
+    },
+    {
+      "name": "雪层（Snow Layer）",
+      "blocks": [
+        "snow"
+      ]
+    },
+    {
+      "name": "竹子（Bamboo）",
+      "blocks": [
+        "bamboo"
+      ]
+    },
+    {
+      "name": "甘蔗 / 甜浆果 / 仙人掌（Farm Plants & Cactus）",
+      "blocks": [
+        "sugar_cane",
+        "sweet_berry_bush",
+        "cactus"
+      ]
+    },
+    {
+      "name": "南瓜与西瓜（Gourds）",
+      "blocks": [
+        "pumpkin",
+        "melon",
+        "pumpkin_stem",
+        "melon_stem",
+        "attached_pumpkin_stem",
+        "attached_melon_stem"
+      ]
+    },
+    {
+      "name": "原木（Logs）",
+      "blocks": [
+        "oak_log",
+        "spruce_log",
+        "birch_log",
+        "jungle_log",
+        "acacia_log",
+        "dark_oak_log",
+        "mangrove_log",
+        "cherry_log",
+        "pale_oak_log"
+      ]
+    },
+    {
+      "name": "木与菌核（Wood & Hyphae）",
+      "blocks": [
+        "oak_wood",
+        "spruce_wood",
+        "birch_wood",
+        "jungle_wood",
+        "acacia_wood",
+        "dark_oak_wood",
+        "mangrove_wood",
+        "cherry_wood",
+        "pale_oak_wood",
+        "crimson_hyphae",
+        "warped_hyphae"
+      ]
+    },
+    {
+      "name": "菌柄（Stems）",
+      "blocks": [
+        "crimson_stem",
+        "warped_stem"
+      ]
+    },
+    {
+      "name": "蘑菇方块（Mushroom Blocks）",
+      "blocks": [
+        "brown_mushroom_block",
+        "red_mushroom_block",
+        "mushroom_stem"
+      ]
+    },
+    {
+      "name": "疣块（Wart Blocks）",
+      "blocks": [
+        "nether_wart_block",
+        "warped_wart_block"
+      ]
+    },
+    {
+      "name": "菌光体（Shroomlight）",
+      "blocks": [
+        "shroomlight"
+      ]
+    },
+    {
+      "name": "紫颂（Chorus）",
+      "blocks": [
+        "chorus_plant",
+        "chorus_flower"
+      ]
+    },
+    {
+      "name": "苔藓地毯 / 落叶 / 灌木 / 枯草（Ground Cover）",
+      "blocks": [
+        "moss_carpet",
+        "pale_moss_carpet",
+        "pale_hanging_moss",
+        "leaf_litter",
+        "bush",
+        "firefly_bush",
+        "short_dry_grass",
+        "tall_dry_grass"
+      ]
+    },
+    {
+      "name": "杜鹃花丛（Azalea Bushes）",
+      "blocks": [
+        "azalea",
+        "flowering_azalea"
+      ]
+    },
+    {
+      "name": "红树根（Mangrove Roots）",
+      "blocks": [
+        "mangrove_roots",
+        "muddy_mangrove_roots"
+      ]
+    }
+  ]
+}

@@ -1,9 +1,0 @@
-{
-  "multipart": [
-    {
-      "apply": {
-        "model": "minecraft:block/terrainradar/pale_moss_carpet"
-      }
-    }
-  ]
-}

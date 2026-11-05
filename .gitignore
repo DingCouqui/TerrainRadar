@@ -1,15 +1,18 @@
 # 构建产物
-dist/
 build/
-# Python 缓存
+dist/
+run/
+# Python/工具缓存
 __pycache__/
 *.pyc
-# 本地工具缓存（不提交）
 .cache/
+# Gradle
+.gradle/
 # 编辑器
 .vscode/
 .idea/
-
+*.iml
 # 参考用只读文件（禁止上传/入库）
 REFERENCE/
-*.backup
+# 资源包工程归档（由项目所有者剪切走）
+_legacy-pack-export/
