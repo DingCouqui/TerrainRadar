@@ -16,3 +16,5 @@ __pycache__/
 REFERENCE/
 # 资源包工程归档（由项目所有者剪切走）
 _legacy-pack-export/
+# 崩溃日志（本地排查用，不上传）
+CRASHLOG/
