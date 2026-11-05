@@ -5,6 +5,7 @@ import com.dingcouqui.terrainradar.config.ConfigManager;
 import com.dingcouqui.terrainradar.config.DefaultBlocks;
 import com.dingcouqui.terrainradar.config.Presets;
 import net.minecraft.block.Block;
+import net.minecraft.client.gl.RenderPipelines;
 import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -14,6 +15,7 @@ import net.minecraft.client.input.KeyInput;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
+import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -31,6 +33,11 @@ public class TerrainRadarScreen extends Screen {
     private static final int TAB_BLOCKS = 1;
     private static final int ROW_HEIGHT = 20;
     private static final int SCROLLBAR_WIDTH = 6;
+    private static final int CHECKBOX_SIZE = 17;
+    private static final Identifier CHECKBOX_TEXTURE = Identifier.ofVanilla("widget/checkbox");
+    private static final Identifier CHECKBOX_HIGHLIGHTED = Identifier.ofVanilla("widget/checkbox_highlighted");
+    private static final Identifier CHECKBOX_SELECTED = Identifier.ofVanilla("widget/checkbox_selected");
+    private static final Identifier CHECKBOX_SELECTED_HIGHLIGHTED = Identifier.ofVanilla("widget/checkbox_selected_highlighted");
     private static final List<String> CATEGORIES = new ArrayList<>();
     private static final Map<String, String> GROUP_OF = new HashMap<>();
 
@@ -286,22 +293,22 @@ public class TerrainRadarScreen extends Screen {
         super.render(context, mouseX, mouseY, delta);
         int left = panelLeft();
         int w = panelWidth();
-        context.drawCenteredTextWithShadow(textRenderer, title, width / 2, 12, 0xFFFFFF);
+        context.drawCenteredTextWithShadow(textRenderer, title, width / 2, 12, 0xFFFFFFFF);
 
         if (tab == TAB_SETTINGS) {
             int rowY = settingsRowY();
-            context.drawTextWithShadow(textRenderer, Text.literal("隐藏方块（总开关）"), left + 10, rowY + 6, 0xFFFFFF);
+            context.drawTextWithShadow(textRenderer, Text.literal("隐藏方块（总开关）"), left + 10, rowY + 6, 0xFFFFFFFF);
             context.drawTextWithShadow(textRenderer, Text.literal("光照穿透（去除天光遮挡与 AO 阴影）"),
-                    left + 10, rowY + 40, 0xFFFFFF);
+                    left + 10, rowY + 40, 0xFFFFFFFF);
             context.drawTextWithShadow(textRenderer,
                     Text.literal("修改完点「应用」生效，点「返回」放弃修改。当前清单：" + working.size() + " 个方块"),
-                    left + 10, rowY + 86, 0xA0A0A0);
+                    left + 10, rowY + 86, 0xFFA0A0A0);
         } else {
             renderBlockList(context, left, w, mouseX, mouseY);
         }
 
         if (appliedFlash) {
-            context.drawCenteredTextWithShadow(textRenderer, Text.literal("已应用"), width / 2, height - 50, 0x55FF55);
+            context.drawCenteredTextWithShadow(textRenderer, Text.literal("已应用"), width / 2, height - 50, 0xFF55FF55);
         }
     }
 
@@ -325,7 +332,7 @@ public class TerrainRadarScreen extends Screen {
         context.drawTextWithShadow(textRenderer,
                 Text.literal("已选 " + working.size() + " / 匹配 " + blocks.size()
                         + " ｜ 滚轮、PageUp/Down、拖动滚动条"),
-                left + 4, bottom + 4, 0xA0A0A0);
+                left + 4, bottom + 4, 0xFFA0A0A0);
 
         // 滚动条
         int max = maxScroll();
@@ -343,12 +350,15 @@ public class TerrainRadarScreen extends Screen {
         if (hover) {
             context.fill(x - 2, y, x + panelWidth() - 10, y + ROW_HEIGHT - 2, 0x33FFFFFF);
         }
-        context.fill(x, y + 3, x + 12, y + 15, 0xFF000000);
-        context.fill(x + 1, y + 4, x + 11, y + 14, checked ? 0xFF55FF55 : 0xFF303030);
+        Identifier texture;
         if (checked) {
-            context.fill(x + 4, y + 7, x + 9, y + 12, 0xFF103010);
+            texture = hover ? CHECKBOX_SELECTED_HIGHLIGHTED : CHECKBOX_SELECTED;
+        } else {
+            texture = hover ? CHECKBOX_HIGHLIGHTED : CHECKBOX_TEXTURE;
         }
-        context.drawTextWithShadow(textRenderer, Text.literal(label), x + 18, y + 6, 0xFFFFFF);
+        int boxY = y + (ROW_HEIGHT - CHECKBOX_SIZE) / 2;
+        context.drawGuiTexture(RenderPipelines.GUI_TEXTURED, texture, x, boxY, CHECKBOX_SIZE, CHECKBOX_SIZE);
+        context.drawTextWithShadow(textRenderer, Text.literal(label), x + CHECKBOX_SIZE + 4, y + 6, 0xFFFFFFFF);
     }
 
     // ---- 输入 ----
