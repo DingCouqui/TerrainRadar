@@ -37,11 +37,25 @@ public class TerrainRadarScreen extends Screen {
     private static final Identifier CHECKBOX_HIGHLIGHTED = Identifier.ofVanilla("widget/checkbox_highlighted");
     private static final Identifier CHECKBOX_SELECTED = Identifier.ofVanilla("widget/checkbox_selected");
     private static final Identifier CHECKBOX_SELECTED_HIGHLIGHTED = Identifier.ofVanilla("widget/checkbox_selected_highlighted");
-    private static final List<String> CATEGORIES = List.of("全部", "树叶", "植物", "树木", "其它");
+    private static final List<String> CATEGORIES = List.of(
+            "全部", "树叶", "植物", "树木", "建筑方块", "功能方块", "矿物资源", "其它");
+    private static final Set<String> RESOURCE_BLOCKS = Set.of(
+            "iron_block", "gold_block", "copper_block", "diamond_block", "emerald_block",
+            "lapis_block", "redstone_block", "coal_block", "netherite_block", "quartz_block",
+            "amethyst_block", "raw_iron_block", "raw_gold_block", "raw_copper_block",
+            "ancient_debris", "resin_block");
+    private static final String[] FUNCTIONAL_KEYWORDS = {
+            "redstone", "piston", "observer", "repeater", "comparator", "dispenser", "dropper",
+            "hopper", "lever", "tripwire", "target", "daylight_detector", "note_block", "jukebox",
+            "lectern", "campfire", "beacon", "conduit", "chest", "furnace", "smoker", "crafting_table",
+            "enchanting_table", "brewing_stand", "cauldron", "barrel", "beehive", "bee_nest",
+            "respawn_anchor", "lodestone", "bell", "grindstone", "smithing_table", "stonecutter",
+            "loom", "cartography_table", "fletching_table", "composter", "tnt", "command_block",
+            "structure_block", "jigsaw", "barrier", "light", "spawner", "portal", "sign"};
 
     /**
-     * 不依赖默认清单：用方块 tag + 类名/ID 特征给所有方块分类（包括模组方块）。
-     * 0 = 其它，1 = 树叶，2 = 植物，3 = 树木。
+     * 不依赖默认清单：用方块 tag + ID 特征给所有方块分类（包括模组方块）。
+     * 1 = 树叶，2 = 植物，3 = 树木，4 = 建筑方块，5 = 功能方块，6 = 矿物资源，0 = 其它。
      */
     private static int classify(Block block) {
         BlockState state = block.getDefaultState();
@@ -65,6 +79,35 @@ public class TerrainRadarScreen extends Screen {
                 + "dripleaf|blossom|lichen|bush|cactus|chorus|lily_pad|petal|litter|moss|bamboo|sugar_cane|"
                 + "nether_wart|wheat|carrot|potato|beetroot|cocoa|azalea|berry).*")) {
             return 2;
+        }
+
+        // 矿物资源：矿石、原矿块、金属/宝石块
+        if (path.contains("_ore") || RESOURCE_BLOCKS.contains(path)) {
+            return 6;
+        }
+
+        // 功能方块：按钮/压力板/铁轨/告示牌 + 红石、容器、工作台等
+        if (state.isIn(BlockTags.BUTTONS) || state.isIn(BlockTags.PRESSURE_PLATES)
+                || state.isIn(BlockTags.RAILS) || state.isIn(BlockTags.SIGNS)) {
+            return 5;
+        }
+        for (String keyword : FUNCTIONAL_KEYWORDS) {
+            if (path.contains(keyword)) {
+                return 5;
+            }
+        }
+
+        // 建筑方块：楼梯/台阶/墙/栅栏/门/活板门/木板/羊毛/陶瓦/混凝土/玻璃/砖，以及实心完整方块
+        if (state.isIn(BlockTags.STAIRS) || state.isIn(BlockTags.SLABS) || state.isIn(BlockTags.WALLS)
+                || state.isIn(BlockTags.FENCES) || state.isIn(BlockTags.FENCE_GATES)
+                || state.isIn(BlockTags.DOORS) || state.isIn(BlockTags.TRAPDOORS)
+                || state.isIn(BlockTags.PLANKS) || state.isIn(BlockTags.WOOL)
+                || state.isIn(BlockTags.WOOL_CARPETS) || state.isIn(BlockTags.TERRACOTTA)
+                || state.isIn(BlockTags.CONCRETE_POWDER)
+                || path.endsWith("_concrete") || path.contains("glass")
+                || path.endsWith("_bricks") || path.endsWith("_brick") || path.endsWith("_tiles")
+                || state.isOpaqueFullCube()) {
+            return 4;
         }
         return 0;
     }
@@ -134,9 +177,11 @@ public class TerrainRadarScreen extends Screen {
         List<Block> result = new ArrayList<>();
         for (Block block : allBlocks) {
             String id = Registries.BLOCK.getId(block).toString();
-            if (categoryIndex != 0 && classify(block) != categoryIndex - 1) {
+            int wanted = categoryIndex == 7 ? 0 : categoryIndex;
+            if (categoryIndex != 0 && classify(block) != wanted) {
                 continue;
-            }            if (!query.isEmpty()) {
+            }
+            if (!query.isEmpty()) {
                 String name = block.getName().getString().toLowerCase(Locale.ROOT);
                 if (!id.toLowerCase(Locale.ROOT).contains(query) && !name.contains(query)) {
                     continue;
