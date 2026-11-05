@@ -195,6 +195,7 @@ public class TerrainRadarScreen extends Screen {
     private boolean draggingScrollbar;
     private ButtonWidget enabledButton;
     private ButtonWidget lightButton;
+    private int listTopOffset = 52;
 
     public TerrainRadarScreen(Screen parent) {
         super(Text.literal("TerrainRadar 设置"));
@@ -223,7 +224,7 @@ public class TerrainRadarScreen extends Screen {
     }
 
     private int listTop() {
-        return contentTop() + 52;
+        return contentTop() + listTopOffset;
     }
 
     private int listBottom() {
@@ -304,11 +305,12 @@ public class TerrainRadarScreen extends Screen {
         int w = panelWidth();
         scroll = Math.min(scroll, maxScroll());
 
-        // 标签按钮：沿用上一版的居中大按钮样式
-        int tabW1 = 240;
-        int tabW2 = 200;
+        // 标签按钮：沿用上一版的居中大按钮样式，窗口变窄时按比例收缩
         int gap = 8;
-        int tabX = width / 2 - (tabW1 + gap + tabW2) / 2;
+        int tabTotal = Math.max(220, Math.min(448, width - 40));
+        int tabW1 = (tabTotal - gap) * 240 / 448;
+        int tabW2 = tabTotal - gap - tabW1;
+        int tabX = width / 2 - tabTotal / 2;
         addDrawableChild(ButtonWidget.builder(Text.literal(tab == TAB_SETTINGS ? "» TerrainRadar 设置" : "TerrainRadar 设置"),
                         button -> switchTab(TAB_SETTINGS))
                 .dimensions(tabX, 10, tabW1, 20).build());
@@ -370,23 +372,44 @@ public class TerrainRadarScreen extends Screen {
                 .dimensions(left + w - 160, top, 160, 20).build());
 
         int rowY = top + 26;
-        for (int i = 0; i < Presets.NAMES.size(); i++) {
-            String name = Presets.NAMES.get(i);
-            addDrawableChild(ButtonWidget.builder(Text.literal("预设：" + name), button -> {
-                        Set<String> preset = Presets.resolve(name);
-                        if (preset != null) {
-                            working.clear();
-                            working.addAll(preset);
-                        }
-                    })
-                    .dimensions(left + i * 104, rowY, 100, 18).build());
+        // 窄窗口放不下「3 个预设 + 全选/反选」一排时，改成分两排
+        boolean narrow = w < 440;
+        listTopOffset = narrow ? 74 : 52;
+        if (!narrow) {
+            for (int i = 0; i < Presets.NAMES.size(); i++) {
+                addPresetButton(left + i * 104, rowY, 100, i);
+            }
+            addSelectButtons(left + w - 128, rowY, 60, 60);
+        } else {
+            int presetW = Math.max(64, (w - 8) / 3);
+            for (int i = 0; i < Presets.NAMES.size(); i++) {
+                addPresetButton(left + i * (presetW + 4), rowY, presetW, i);
+            }
+            int selectY = rowY + 22;
+            int half = (w - 4) / 2;
+            addSelectButtons(left, selectY, half, w - half - 4);
         }
+    }
+
+    private void addPresetButton(int x, int y, int width, int index) {
+        String name = Presets.NAMES.get(index);
+        addDrawableChild(ButtonWidget.builder(Text.literal("预设：" + name), button -> {
+                    Set<String> preset = Presets.resolve(name);
+                    if (preset != null) {
+                        working.clear();
+                        working.addAll(preset);
+                    }
+                })
+                .dimensions(x, y, width, 18).build());
+    }
+
+    private void addSelectButtons(int x, int y, int selectAllWidth, int invertWidth) {
         addDrawableChild(ButtonWidget.builder(Text.literal("全选"), button -> {
                     for (Block block : filtered()) {
                         working.add(Registries.BLOCK.getId(block).toString());
                     }
                 })
-                .dimensions(left + w - 128, rowY, 60, 18).build());
+                .dimensions(x, y, selectAllWidth, 18).build());
         addDrawableChild(ButtonWidget.builder(Text.literal("反选"), button -> {
                     for (Block block : filtered()) {
                         String id = Registries.BLOCK.getId(block).toString();
@@ -395,7 +418,7 @@ public class TerrainRadarScreen extends Screen {
                         }
                     }
                 })
-                .dimensions(left + w - 64, rowY, 60, 18).build());
+                .dimensions(x + selectAllWidth + 4, y, invertWidth, 18).build());
     }
 
     private void switchTab(int newTab) {
