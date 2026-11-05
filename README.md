@@ -120,6 +120,10 @@ The output jar is `build/libs/terrainradar-<version>.jar`.
 - [GLOSSARY.md](GLOSSARY.md) — project terminology
 - [docs/adr](docs/adr/) — architecture decision records
 
+### License
+
+This project is licensed under the **GNU General Public License v3.0**. See [LICENSE](LICENSE) for the full text.
+
 ## 中文
 
 ### 概述
@@ -239,3 +243,7 @@ $env:JAVA_HOME = '<path-to-jdk-25>'
 - [docs/TESTING.md](docs/TESTING.md) — 手动测试清单
 - [GLOSSARY.md](GLOSSARY.md) — 项目术语
 - [docs/adr](docs/adr/) — 架构决策记录
+
+### 许可证
+
+本项目使用 **GNU General Public License v3.0** 许可证，完整文本见 [LICENSE](LICENSE)。
