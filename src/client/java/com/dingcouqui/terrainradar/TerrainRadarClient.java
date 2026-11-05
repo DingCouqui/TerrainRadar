@@ -3,7 +3,7 @@ package com.dingcouqui.terrainradar;
 import com.dingcouqui.terrainradar.command.TerrainRadarCommand;
 import com.dingcouqui.terrainradar.config.ConfigManager;
 import com.dingcouqui.terrainradar.hidden.HiddenBlocks;
-import com.dingcouqui.terrainradar.mixin.WorldRendererMixin;
+import com.dingcouqui.terrainradar.hidden.LightCache;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -23,7 +23,7 @@ public final class TerrainRadarClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(Refresh::tick);
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
             HiddenBlocks.reload(LOGGER);
-            WorldRendererMixin.invalidate();
+            LightCache.invalidate();
         });
         LOGGER.info("TerrainRadar loaded: {} hidden block ids", HiddenBlocks.ids().size());
     }
@@ -32,7 +32,7 @@ public final class TerrainRadarClient implements ClientModInitializer {
     public static void applyChange() {
         ConfigManager.save(LOGGER);
         HiddenBlocks.reload(LOGGER);
-        WorldRendererMixin.invalidate();
+        LightCache.invalidate();
         Refresh.request();
     }
 }

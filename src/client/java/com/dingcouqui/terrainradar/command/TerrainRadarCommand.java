@@ -5,7 +5,7 @@ import com.dingcouqui.terrainradar.TerrainRadarClient;
 import com.dingcouqui.terrainradar.config.ConfigManager;
 import com.dingcouqui.terrainradar.config.DefaultBlocks;
 import com.dingcouqui.terrainradar.hidden.HiddenBlocks;
-import com.dingcouqui.terrainradar.mixin.WorldRendererMixin;
+import com.dingcouqui.terrainradar.hidden.LightCache;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
@@ -142,7 +142,7 @@ public final class TerrainRadarCommand {
     private static int reload(FabricClientCommandSource source) {
         ConfigManager.load(TerrainRadarClient.LOGGER);
         HiddenBlocks.reload(TerrainRadarClient.LOGGER);
-        WorldRendererMixin.invalidate();
+        LightCache.invalidate();
         Refresh.request();
         source.sendFeedback(Text.literal("已重新读取配置"));
         return 1;
