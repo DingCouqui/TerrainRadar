@@ -60,7 +60,12 @@ public final class HiddenBlocks {
     }
 
     public static boolean isHidden(Block block) {
-        return hideGate.getAsBoolean() && !blocks.isEmpty() && blocks.contains(block);
+        return isHidingAllowed() && !blocks.isEmpty() && blocks.contains(block);
+    }
+
+    /** 当前是否允许隐藏（lite 构建在多人会话中会返回 false）。 */
+    public static boolean isHidingAllowed() {
+        return hideGate.getAsBoolean();
     }
 
     public static boolean isEmpty() {

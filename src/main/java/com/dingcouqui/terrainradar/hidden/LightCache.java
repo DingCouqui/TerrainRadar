@@ -34,7 +34,8 @@ public final class LightCache {
 
     /** 渲染位置正上方（穿过隐藏方块）是否能看到天空；是则把天光补满。 */
     public static boolean shouldBoostSkyLight(BlockRenderView world, BlockPos pos) {
-        if (!ConfigManager.get().enabled || !ConfigManager.get().lightPassthrough || HiddenBlocks.isEmpty()) {
+        if (!ConfigManager.get().enabled || !ConfigManager.get().lightPassthrough
+                || !HiddenBlocks.isHidingAllowed() || HiddenBlocks.isEmpty()) {
             return false;
         }
         Long2ByteOpenHashMap cache = SCAN_CACHE.get();
