@@ -1,4 +1,4 @@
-# TerrainRadar 手动测试清单（v0.4.1）
+# TerrainRadar 手动测试清单（v0.4.2）
 
 > 分工：实现方不操作项目所有者的游戏目录。你把 jar 放进实例的 `mods/`，按下面步骤验证。
 > 依赖：Minecraft **1.21.11**、Fabric Loader（≥0.17）、**Fabric API**（0.141.6+1.21.11）；不需要 Cloth Config。
@@ -6,8 +6,8 @@
 
 ## 0. 交付物
 
-- `build/libs/terrainradar-0.4.1.jar`（普通构建）
-- `build/libs/terrainradar-lite-0.4.1.jar`（lite：多人会话中关闭隐藏与光照穿透）
+- `build/libs/terrainradar-0.4.2.jar`（普通构建）
+- `build/libs/terrainradar-lite-0.4.2.jar`（lite：多人会话中关闭隐藏与光照穿透）
 - 建议测试实例：
   - **Sodium / Iris 兼容**：`D:\Games\Minecraft\Game\.minecraft\versions\1.21.11`（已有 fabric-api 0.141.6 + sodium 0.8.15 + iris 1.10.8 + modmenu；把 terrainradar 换成新 jar）
   - **原版 / Indigo 回归**：任一无 Sodium/Iris 的 1.21.11 Fabric 实例
@@ -15,7 +15,7 @@
 
 ## 1. 安装
 
-1. 把 `terrainradar-0.4.1.jar` 复制到 `versions\<实例>\mods\`
+1. 把 `terrainradar-0.4.2.jar` 复制到 `versions\<实例>\mods\`
 2. 确认 `mods\` 里有 `fabric-api-0.141.6+1.21.11.jar`，且没有其它 xray/透视类模组；测 Sodium 兼容时再确认有 `sodium-*.jar`（0.8.x）与（可选）`iris-*.jar`（1.10.x）
 3. HMCL 启动该实例（Java 21），进入一个创造世界
 4. 主菜单 → Mods（如果装了 ModMenu）确认 TerrainRadar 已加载；否则看日志 `logs/latest.log`
@@ -113,8 +113,9 @@
 - [ ] 光照穿透生效：`light on` 时树冠下地形明显变亮，`light off` 恢复（Sodium 下由 `LightDataAccess` 补光）
 - [ ] 运行时切换：`/terrainradar off` → 3~5s 内植被恢复可见；`/terrainradar on` → 3~5s 内重新隐藏；键位/GUI 应用同样生效；无卡死、无崩溃（Sodium 下会重建区块，日志有 `Stopping worker threads` / `Started 10 worker threads` 属正常）
 - [ ] Iris 安装且**启用光影包**时不崩溃、不紫黑/闪烁，隐藏与补洞仍生效；光影下光照穿透是否明显取决于 shader
-- [ ] “表层/深层”预设隐藏整层地表时，会看到隐藏方块后方的天空/洞穴/含水层——这是隐藏语义的预期结果，**不算洞**（与 ADR 0005 一致；实测在未装 Sodium 的纯 Indigo 路径下同样出现，机制是原地表高度留下水平空腔、掠射视线穿出到轮廓外；Sodium 的 section 遮挡剔除会让缺口后显示天空色空背景，视觉上更明显一点）。想避免该现象请用“植被”预设
-- [ ] 卸载 Sodium/Iris 后，原版/Indigo 路径的隐藏、补洞、光照与“表层预设的地表透空”表现不变；**日志里不应出现 `@Mixin target net/caffeinemc/... was not found` 或 `Error loading class: net/caffeinemc/...`**（`SodiumMixinPlugin` 会在 Sodium 缺失时提前过滤这三个 mixin）
+- [ ] “表层/深层”预设隐藏整层地表时，露出的应是**真实洞穴/含水层/空气**；不应再看到“背景天空色”的假缺口（v0.4.2 修复了区块遮挡剔除把隐藏方块当遮挡体的问题）
+- [ ] 定点回归（v0.4.2）：创造/旁观模式 `/tp -3095 78.3 -1078 0 90` 与 `/tp -3095 78.4 -1078 0 90` 垂直向下看，两者都应看到石头地面；0.4.1 及更早版本在 78.4 会整片变成天空色（因为眼睛跨过 y=80 的 section 边界）
+- [ ] 卸载 Sodium/Iris 后，原版/Indigo 路径的隐藏、补洞、光照与定点回归表现不变；**日志里不应出现 `@Mixin target net/caffeinemc/... was not found` 或 `Error loading class: net/caffeinemc/...`**（`SodiumMixinPlugin` 会在 Sodium 缺失时提前过滤这些 mixin）
 
 ## 3. 回报格式
 
@@ -136,6 +137,10 @@
 | 2026-11-06 | 1.21.11 + Fabric API 0.141.6（Indigo，移除 Sodium/Iris），terrainradar **0.4.0** | 通过（回归）：Indigo 正常注册；隐藏/补洞正常，画面与 Sodium 版 mean diff 2.4；`SodiumMixinPlugin` 过滤后日志无 `@Mixin target net/caffeinemc/... was not found` / `Error loading class` 警告 |
 | 2026-11-06 | 1.21.11 + Fabric API 0.141.6 + Sodium 0.8.15-beta.1 + Iris 1.10.8，terrainradar **0.4.1**（隔离实例） | 通过（bugfix）：`/terrainradar gui` 之前被 `ChatScreen` 在命令返回后立即 `setScreen(null)` 关掉，表现为“命令没反应”；改为 `client.send(...)` 延迟到下一 tick 打开后，实测命令能正常打开「TerrainRadar 设置」界面，无异常 |
 
-已通过项：A（加载）、B（隐藏与补洞）、C（光照差异）、C2（GUI）、C3（按键绑定）、C4（语言）、F（Sodium/Iris 兼容，0.4.0）。
+| 2026-11-06 | 1.21.11 + Fabric API 0.141.6 + Sodium 0.8.15-beta.1 + Iris 1.10.8，terrainradar **0.4.1**（隔离实例，定点 y=78.3/78.4） | 失败（复现）：`/tp -3095 78.3 -1078 0 90` 垂直向下是石头地面；`/tp -3095 78.4 -1078 0 90` 整片变成天空色（眼高跨过 y=80 section 边界）；常规机位天空色像素 12,374 |
+| 2026-11-06 | 1.21.11 + Fabric API 0.141.6 + Sodium 0.8.15-beta.1 + Iris 1.10.8，terrainradar **0.4.2** | 通过：78.3/78.4 两处均正常显示石头；常规机位天空色像素 12,374 → 24；无 mixin 报错。修复方式：`ChunkBuilderMeshingTask` 的 `isOpaqueFullCube()` 对隐藏方块返回 false |
+| 2026-11-06 | 1.21.11 + Fabric API 0.141.6（Indigo，移除 Sodium/Iris），terrainradar **0.4.1 → 0.4.2** | 通过（回归）：0.4.1 同样有天空色缺口（78.3 与 78.4 都有）；0.4.2 两处均正常，`SectionBuilderMixin` 生效且无报错 |
+
+已通过项：A（加载）、B（隐藏与补洞）、C（光照差异）、C2（GUI）、C3（按键绑定）、C4（语言）、F（Sodium/Iris 兼容，0.4.2）。
 
 仍建议补测：D（命令 add/remove/preset/list/reload 与配置持久，0.4.0 在 Sodium 环境下已顺带验证大多数命令）、E（物品/碰撞/轮廓回归）、FPS 是否明显下降、Iris 光影包下的长时间稳定性。

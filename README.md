@@ -97,7 +97,7 @@ The block list follows the vanilla creative tabs: **All**, **Building**, **Color
 - With Sodium installed, a dedicated `<code>terrainradar.sodium.mixins.json</code>` is enabled automatically; without Sodium it is inert, and the vanilla/Indigo path is unchanged. The Sodium hooks target three Sodium 0.8 members — if a future Sodium version changes them, hiding degrades gracefully (a warning is logged, no crash).
 - Only normal blocks are guaranteed. Block entities (chests, signs, etc.) are not part of the default list and their rendering is not guaranteed.
 - Light passthrough is a visual approximation using vertex brightness; it does not perform a real relight. On Sodium it uses the chunk-build light slice (render-section ±2 blocks), so extremely tall canopies may be missed.
-- Hiding a whole surface layer (Surface/Deep presets) intentionally reveals whatever is behind it (caves, aquifers, air); that is the hiding semantics, not a rendering hole.
+- Hiding a whole surface layer (Surface/Deep presets) intentionally reveals whatever is behind it. v0.4.2 fixed a section-occlusion bug that could show the background sky colour through hidden ground layers; remaining openings now show real caves/aquifers/air (not a false hole). Deep presets may render more sections and cost some performance.
 - No per-world configuration is provided.
 
 ### Building from source
@@ -223,7 +223,7 @@ TerrainRadar 是一个纯客户端渲染模组，适用于 Minecraft **1.21.11**
 - 装了 Sodium 时自动启用 `<code>terrainradar.sodium.mixins.json</code>`；没装 Sodium 时该配置完全惰性，原版/Indigo 路径不变。Sodium 钩子依赖 0.8.x 的三个成员，未来 Sodium 改签名时隐藏会优雅降级（日志告警、不崩溃）。
 - 只保证普通方块；方块实体（箱子、告示牌等）不在默认清单内，也不保证其渲染被隐藏。
 - 光照穿透是基于顶点亮度的视觉近似，不做真正的 relight；Sodium 下只能读到区块构建时的光照切片（渲染 section ±2 方块），极高树冠可能漏判。
-- 选择“表层/深层”预设隐藏整层地表时，会看到其后的洞穴/含水层/空气，这是隐藏语义的预期结果，不是补洞失败。
+- 选择“表层/深层”预设会露出被隐藏层后面的内容。v0.4.2 修复了区块遮挡剔除的 bug（此前可能透过隐藏地表看到背景天空色）；现在露出的应是真实洞穴/含水层/空气，而不是假洞。“深层”预设会让更多区块参与渲染，可能带来一定性能开销。
 - 不提供每个世界单独配置。
 
 ### 从源码构建

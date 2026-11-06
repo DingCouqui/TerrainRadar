@@ -8,6 +8,7 @@
     "BlockRenderManagerMixin",
     "BlockStateMixin",
     "IndigoTerrainRenderContextMixin",
+    "SectionBuilderMixin",
     "WorldRendererMixin"
   ],
   "injectors": {

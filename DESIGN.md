@@ -1,6 +1,6 @@
 # TerrainRadar 设计规格（Fabric 客户端模组）
 
-> v0.4.1（2026-11-06）。v0.4.0 完成 **Sodium 0.8.x / Iris 1.10.x 适配**（第三阶段），v0.4.1 修复 `/terrainradar gui` 在聊天框输入时被 `ChatScreen` 立即关闭的问题；v0.3.0 为原版 / Indigo 基线。
+> v0.4.2（2026-11-06）。v0.4.0 完成 **Sodium 0.8.x / Iris 1.10.x 适配**（第三阶段）；v0.4.1 修复 `/terrainradar gui` 在聊天框输入时被 `ChatScreen` 立即关闭的问题；v0.4.2 修复 **区块遮挡剔除把隐藏方块当遮挡体、导致 section 整段不渲染而出现天空色缺口**；v0.3.0 为原版 / Indigo 基线。
 > 资源包工程已归档到 `_legacy-pack-export/`（git tag `pack-legacy-v0.2.1`），由项目所有者剪切走。
 > 本文件描述 mod 的设计；实现细节以本文件、`GLOSSARY.md`、`docs/adr/` 为准。
 
@@ -51,7 +51,7 @@
 | Sodium（可选兼容） | `0.8.7` / `0.8.15-beta.1`（1.21.11） |
 | Iris（可选兼容） | `1.10.7` / `1.10.8`（1.21.11） |
 
-> v0.4.1 已构建成功（`build/libs/terrainradar-0.4.1.jar`、`build/libs/terrainradar-lite-0.4.1.jar`）。构建命令（本机）：
+> v0.4.2 已构建成功（`build/libs/terrainradar-0.4.2.jar`、`build/libs/terrainradar-lite-0.4.2.jar`）。构建命令（本机）：
 >
 > ```powershell
 > $env:JAVA_HOME='D:\Games\Minecraft\OtherClients\McHMR\java25'
@@ -67,7 +67,7 @@
 - 刷新：配置变化合并到下一 tick，调用 `worldRenderer.reload()`（MVP 采用简单方案；后续可换 `scheduleChunkRender*` 精确标脏）。
 - 配置：`FabricLoader.getInstance().getConfigDir()` + Gson。
 
-**Sodium / Iris 适配（v0.4.0，见 `docs/adr/0006`）**：
+**Sodium / Iris 适配（v0.4.0 起，见 `docs/adr/0006`）**：
 
 Sodium 用自己的区块渲染管线，原版与 Indigo 的钩子全部失效。新增 `terrainradar.sodium.mixins.json`（`@Mixin(targets = "...", remap = false)`，编译期不依赖 Sodium，`required: false`；`plugin` 在 Sodium 缺失时提前过滤，未装 Sodium 的实例日志保持干净）：
 
@@ -76,6 +76,7 @@ Sodium 用自己的区块渲染管线，原版与 Indigo 的钩子全部失效�
 | 隐藏方块 | `BlockRenderer.renderModel` HEAD 取消 | Sodium 的每方块网格入口；`@Inject(order = 0)` 先于 Iris 的 HEAD/TAIL，避免其 `hasOverride` 标记泄漏 |
 | 补洞 | `AbstractBlockRenderContext.shouldDrawSide` HEAD 返回 `true` | Sodium 用 `ShapeComparisonCache` 自己做剔除，不调用原版 `Block.shouldDrawSide` |
 | 光照穿透 | `LightDataAccess.compute` RETURN 把 packed 天空光位（bit4-7）设为 15 | 复用 `LightCache` 的“上方有隐藏方块”判定；`WorldRenderer.getLightmapCoordinates` 在 Sodium 下不参与地形 |
+| 区块遮挡剔除（v0.4.2） | `ChunkBuilderMeshingTask.execute` 的 `isOpaqueFullCube()` 对隐藏方块返回 `false` | 隐藏方块不再写入 `ChunkOcclusionData`；原版路径对应 `SectionBuilder.build`（`SectionBuilderMixin`）。否则隐藏地表把所在 section 标成“封闭”，其下方 section 整段不渲染 → 天空色缺口 |
 
 Sodium 不存在时目标类不会加载、钩子自然失效；未来 Sodium 改签名时配置 `required: false` 会降级为日志告警而不是崩溃。刷新仍沿用 `worldRenderer.reload()`（Sodium 会据此重建全部区块，实测生效）。
 
@@ -103,7 +104,8 @@ Sodium 不存在时目标类不会加载、钩子自然失效；未来 Sodium �
 - 运行时 `/terrainradar on|off`、键位、GUI 切换后区块立即重建并生效，不卡死、不崩溃；
 - 日志出现 `TerrainRadar: Sodium ... detected, Sodium chunk render hooks enabled`，无 mixin 注入失败；
 - Iris 1.10.x 安装（含开启光影包）时不崩溃，隐藏与补洞仍生效；
-- 未安装 Sodium 时原版/Indigo 路径行为不变（回归通过）。
+- 未安装 Sodium 时原版/Indigo 路径行为不变（回归通过）；
+- “表层/深层”预设不再出现背景天空色缺口（v0.4.2 修复区块遮挡剔除；剩余透空必须是真实洞穴/空气）。
 - **2026-11-06 已在 1.21.11 + Fabric API 0.141.6 + Sodium 0.8.15-beta.1 + Iris 1.10.8 隔离实例实测通过**（截图对比见 `docs/TESTING.md` 测试记录）。
 
 ## 7. 测试与交付
@@ -115,12 +117,12 @@ Sodium 不存在时目标类不会加载、钩子自然失效；未来 Sodium �
 ## 8. 已知风险
 
 - **1.21.11 的精确 mixin 签名**需要实机核对（现有开源先例是 1.21.4 或更新的快照命名，不能照抄）。v0.3.0 / v0.4.0 均已实机核对。
-- **VisGraph / SectionOcclusionGraph 整段剔除**：可能让隐藏方块所在区块整体不渲染；目前实测植被/表层预设未复现。
-- **Sodium 版本漂移**：适配依赖 Sodium 0.8.x 的 `BlockRenderer.renderModel` / `AbstractBlockRenderContext.shouldDrawSide` / `LightDataAccess.compute` 三个成员；签名变化时钩子静默降级（`required: false` + 日志告警），不会崩溃，但隐藏会失效，需要跟版修复。
+- **VisGraph / SectionOcclusionGraph 整段剔除**：v0.4.2 已定位并修复（隐藏方块仍被写进 `ChunkOcclusionData`，导致下方 section 被剔除、出现天空色缺口）；修复后“表层/深层”只会露出真实洞穴/空气，不再露背景天空色。
+- **Sodium 版本漂移**：适配依赖 Sodium 0.8.x 的 `BlockRenderer.renderModel` / `AbstractBlockRenderContext.shouldDrawSide` / `LightDataAccess.compute` / `ChunkBuilderMeshingTask.execute` 等成员；签名变化时钩子静默降级（`required: false` + 日志告警），不会崩溃，但隐藏会失效，需要跟版修复。
 - **Iris 光影**：隐藏/补洞发生在区块网格构建阶段，与光影无关；光照穿透是顶点 lightmap 近似，光影包是否使用它取决于 shader。
 - **Sodium 下的光照穿透覆盖范围**：`LightDataAccess` 只能读到区块构建的 `LevelSlice`（渲染 section ±2 方块），极高树冠跨出该范围时可能漏判“上方有隐藏方块”。
 - **客户端 relight**可能被服务端下发的 light 包覆盖，所以不做真 relight。
-- 隐藏“表层/深层”预设的整层地表时，会看到其后的洞穴/含水层/空气；这是隐藏语义的预期结果（见 ADR 0005），不是补洞失败。纯 Indigo 路径同样出现（原地表高度留下水平空腔，掠射视线穿出轮廓）；Sodium 下因 section 遮挡剔除仍按真实区块数据计算，缺口后显示天空色空背景，视觉上略明显。
+- 隐藏“表层/深层”预设的整层地表时，会看到其后的洞穴/含水层/空气；这是隐藏语义的预期结果（见 ADR 0005）。v0.4.2 起不再出现“背景天空色”的假缺口；但 `深层`把大片石头从遮挡数据里移除后可见 section 变多，可能增加渲染开销。
 
 ## 9. 文档与历史
 

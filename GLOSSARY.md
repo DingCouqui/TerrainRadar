@@ -51,5 +51,8 @@ _Avoid_: 默认、仅树叶、仅植物（旧名，已废弃）
 Sodium 用自己的区块网格构建器（`ChunkBuilderMeshingTask` → `BlockRenderer.renderModel`）与面剔除/光照采样替代原版地形渲染，并取代 Fabric Indigo。装 Sodium 时 Indigo 会输出 `Different rendering plugin detected; not applying Indigo.` 并退出，原版/Indigo 的隐藏钩子全部失效。
 
 **Sodium 适配层（Sodium Compatibility Layer）**：
-`terrainradar.sodium.mixins.json` 中的三个注入（隐藏、补洞、光照穿透），只在 Sodium 存在时生效，编译期不依赖 Sodium；`required: false`，Sodium 改版时优雅降级。
+`terrainradar.sodium.mixins.json` 中的注入（隐藏、补洞、光照穿透、区块遮挡剔除），只在 Sodium 存在时生效，编译期不依赖 Sodium；`required: false`，Sodium 改版时优雅降级。
 _Avoid_: 直接说“Sodium 兼容补丁”（容易和资源包/其他模组的补丁混淆）
+
+**区块遮挡数据（ChunkOcclusionData）**：
+每个 16³ section 的可见性数据，由构建网格时用 `isOpaqueFullCube()` 标记的“封闭”方块算出。隐藏方块若仍被标记封闭，其下方 section 会被整段剔除，表现为“透过隐藏地表看到背景天空色”。v0.4.2 起隐藏方块不参与该数据（原版 `SectionBuilder` 与 Sodium `ChunkBuilderMeshingTask` 两处）。
