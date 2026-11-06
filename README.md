@@ -97,7 +97,7 @@ The block list follows the vanilla creative tabs: **All**, **Building**, **Color
 ### Compatibility and limitations
 
 - **Client-side only**: the server does not need this mod; server-side behavior is unchanged.
-- Renderer support: vanilla renderer, Fabric API Indigo, **Sodium 0.8.x** and **Iris 1.10.x** (Sodium 0.8.7 / 0.8.15 and Iris 1.10.7 / 1.10.8 tested on 1.21.11). Embeddium is not supported.
+- Renderer support: vanilla renderer, Fabric API Indigo, **Sodium 0.8.x** and **Iris 1.10.x** (tested with Sodium 0.8.15-beta.1 and Iris 1.10.8 on 1.21.11; other Sodium 0.8.x builds share the same hook signatures). Embeddium is not supported.
 - With Sodium installed, a dedicated `<code>terrainradar.sodium.mixins.json</code>` is enabled automatically; without Sodium it is inert, and the vanilla/Indigo path is unchanged. The Sodium hooks target four Sodium 0.8 members — if a future Sodium version changes them, hiding degrades gracefully (a warning is logged, no crash).
 - Only normal blocks are guaranteed. Block entities (chests, signs, etc.) are not part of the default list and their rendering is not guaranteed.
 - Light passthrough is a visual approximation using vertex brightness; it does not perform a real relight. On Sodium it uses the chunk-build light slice (render-section ±2 blocks), so extremely tall canopies may be missed.
@@ -227,7 +227,7 @@ TerrainRadar 是一个纯客户端渲染模组，适用于 Minecraft **1.21.11**
 ### 兼容性与限制
 
 - **纯客户端**：服务器不需要安装本模组；服务端行为不变。
-- 渲染器支持：原版渲染器、Fabric API Indigo、**Sodium 0.8.x** 与 **Iris 1.10.x**（1.21.11 上实测 Sodium 0.8.7 / 0.8.15、Iris 1.10.7 / 1.10.8）。不支持 Embeddium。
+- 渲染器支持：原版渲染器、Fabric API Indigo、**Sodium 0.8.x** 与 **Iris 1.10.x**（1.21.11 上实测 Sodium 0.8.15-beta.1 与 Iris 1.10.8；其它 Sodium 0.8.x 版本使用相同的钩子签名）。不支持 Embeddium。
 - 装了 Sodium 时自动启用 `<code>terrainradar.sodium.mixins.json</code>`；没装 Sodium 时该配置完全惰性，原版/Indigo 路径不变。Sodium 钩子依赖 0.8.x 的四个成员，未来 Sodium 改签名时隐藏会优雅降级（日志告警、不崩溃）。
 - 只保证普通方块；方块实体（箱子、告示牌等）不在默认清单内，也不保证其渲染被隐藏。
 - 光照穿透是基于顶点亮度的视觉近似，不做真正的 relight；Sodium 下只能读到区块构建时的光照切片（渲染 section ±2 方块），极高树冠可能漏判。
