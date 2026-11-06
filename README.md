@@ -8,11 +8,15 @@ A client-side Fabric mod for Minecraft **1.21.11** that hides the rendering of s
 
 TerrainRadar is a pure client-side rendering mod. It keeps the selected blocks in the world (collision, hitboxes, drops and server-side logic are untouched) but skips their rendering. Neighbor faces are rendered so hidden solid blocks do not leave see-through holes. The default list focuses on vegetation; any registered block can be added from the GUI.
 
+**The mod is only intended for visual optimizations such as hiding vegetation. Using it on servers that prohibit X-Ray is not recommended.**
+
 ### Features
 
 - Hide any block from the built-in list, or search and tick any registered block.
 - **No holes**: when a hidden block would normally cull a neighbor's face, that face is rendered instead (vanilla renderer, Fabric API Indigo and Sodium 0.8.x are all handled).
 - **Light passthrough** (toggle, default on): hidden blocks no longer block skylight, and no ambient-occlusion shadow remains around hidden blocks (vanilla/Indigo and Sodium).
+- **Section-occlusion fix (v0.4.2)**: hidden blocks no longer count as chunk-section occluders, so they cannot make whole sections behind them disappear (previously visible as background sky-coloured gaps).
+- **Sodium 0.8.x / Iris 1.10.x support**: a dedicated compatibility layer is enabled automatically when Sodium is present; without Sodium the vanilla/Indigo path is unchanged.
 - Block list GUI with search, vanilla-creative-style categories, a scrollable list with scrollbar / mouse wheel / PageUp/PageDown, select all / invert, and presets.
 - Three cumulative presets: **Vegetation**, **Surface**, **Deep**.
 - Optional key binding for the master switch; **unbound by default**.
@@ -31,7 +35,7 @@ TerrainRadar is a pure client-side rendering mod. It keeps the selected blocks i
 
 1. Install Fabric Loader for Minecraft 1.21.11.
 2. Put Fabric API and (optionally) ModMenu into the `mods` folder.
-3. Put `terrainradar-<version>.jar` into the `mods` folder.
+3. Put the latest `terrainradar-<version>.jar` (current: `v0.4.2`) into the `mods` folder.
 4. Launch the Fabric 1.21.11 profile.
 
 ### Usage
@@ -94,7 +98,7 @@ The block list follows the vanilla creative tabs: **All**, **Building**, **Color
 
 - **Client-side only**: the server does not need this mod; server-side behavior is unchanged.
 - Renderer support: vanilla renderer, Fabric API Indigo, **Sodium 0.8.x** and **Iris 1.10.x** (Sodium 0.8.7 / 0.8.15 and Iris 1.10.7 / 1.10.8 tested on 1.21.11). Embeddium is not supported.
-- With Sodium installed, a dedicated `<code>terrainradar.sodium.mixins.json</code>` is enabled automatically; without Sodium it is inert, and the vanilla/Indigo path is unchanged. The Sodium hooks target three Sodium 0.8 members — if a future Sodium version changes them, hiding degrades gracefully (a warning is logged, no crash).
+- With Sodium installed, a dedicated `<code>terrainradar.sodium.mixins.json</code>` is enabled automatically; without Sodium it is inert, and the vanilla/Indigo path is unchanged. The Sodium hooks target four Sodium 0.8 members — if a future Sodium version changes them, hiding degrades gracefully (a warning is logged, no crash).
 - Only normal blocks are guaranteed. Block entities (chests, signs, etc.) are not part of the default list and their rendering is not guaranteed.
 - Light passthrough is a visual approximation using vertex brightness; it does not perform a real relight. On Sodium it uses the chunk-build light slice (render-section ±2 blocks), so extremely tall canopies may be missed.
 - Hiding a whole surface layer (Surface/Deep presets) intentionally reveals whatever is behind it. v0.4.2 fixed a section-occlusion bug that could show the background sky colour through hidden ground layers; remaining openings now show real caves/aquifers/air (not a false hole). Deep presets may render more sections and cost some performance.
@@ -134,11 +138,15 @@ TerrainRadar 是一个纯客户端渲染模组，适用于 Minecraft **1.21.11**
 
 方块在世界中仍然存在（碰撞、命中判定、掉落物和服务端逻辑都不变），模组只跳过它们的渲染；同时会渲染相邻方块朝向隐藏方块的面，避免出现可透视的洞。默认清单以植被为主，任意已注册方块都可以在 GUI 里搜索并勾选。
 
+**本模组仅用于视觉优化（例如隐藏植被）；不建议在禁止 X-Ray 的服务器上使用。**
+
 ### 功能
 
 - 隐藏内置清单中的方块，或在 GUI 中搜索并勾选任意已注册方块。
 - **无洞补面**：当隐藏方块原本会剔除邻居面时，改为正常渲染该面（原版渲染器、Fabric API Indigo 与 Sodium 0.8.x 都已处理）。
 - **光照穿透**（可开关，默认开）：隐藏方块不再遮挡天光，隐藏方块周围也不会残留 AO 阴影（原版/Indigo 与 Sodium 均支持）。
+- **区块遮挡剔除修复（v0.4.2）**：隐藏方块不再被当作 section 遮挡体，不会让其后方整个 section 消失（此前表现为背景天空色缺口）。
+- **Sodium 0.8.x / Iris 1.10.x 适配**：检测到 Sodium 时自动启用专用兼容层；没有 Sodium 时原版/Indigo 路径不变。
 - 方块清单 GUI：搜索、原版创造模式风格分类、可滚动列表（滚动条 / 鼠标滚轮 / PageUp/PageDown）、全选 / 反选、预设。
 - 三份严格累加的预设：**植被**、**表层**、**深层**。
 - 总开关的可选按键绑定，**默认不绑定**。
@@ -157,7 +165,7 @@ TerrainRadar 是一个纯客户端渲染模组，适用于 Minecraft **1.21.11**
 
 1. 为 Minecraft 1.21.11 安装 Fabric Loader。
 2. 把 Fabric API、以及（可选）ModMenu 放进 `mods` 文件夹。
-3. 把 `terrainradar-<version>.jar` 放进 `mods` 文件夹。
+3. 把最新 `terrainradar-<version>.jar`（当前 `v0.4.2`）放进 `mods` 文件夹。
 4. 启动 Fabric 1.21.11 配置。
 
 ### 使用
@@ -220,7 +228,7 @@ TerrainRadar 是一个纯客户端渲染模组，适用于 Minecraft **1.21.11**
 
 - **纯客户端**：服务器不需要安装本模组；服务端行为不变。
 - 渲染器支持：原版渲染器、Fabric API Indigo、**Sodium 0.8.x** 与 **Iris 1.10.x**（1.21.11 上实测 Sodium 0.8.7 / 0.8.15、Iris 1.10.7 / 1.10.8）。不支持 Embeddium。
-- 装了 Sodium 时自动启用 `<code>terrainradar.sodium.mixins.json</code>`；没装 Sodium 时该配置完全惰性，原版/Indigo 路径不变。Sodium 钩子依赖 0.8.x 的三个成员，未来 Sodium 改签名时隐藏会优雅降级（日志告警、不崩溃）。
+- 装了 Sodium 时自动启用 `<code>terrainradar.sodium.mixins.json</code>`；没装 Sodium 时该配置完全惰性，原版/Indigo 路径不变。Sodium 钩子依赖 0.8.x 的四个成员，未来 Sodium 改签名时隐藏会优雅降级（日志告警、不崩溃）。
 - 只保证普通方块；方块实体（箱子、告示牌等）不在默认清单内，也不保证其渲染被隐藏。
 - 光照穿透是基于顶点亮度的视觉近似，不做真正的 relight；Sodium 下只能读到区块构建时的光照切片（渲染 section ±2 方块），极高树冠可能漏判。
 - 选择“表层/深层”预设会露出被隐藏层后面的内容。v0.4.2 修复了区块遮挡剔除的 bug（此前可能透过隐藏地表看到背景天空色）；现在露出的应是真实洞穴/含水层/空气，而不是假洞。“深层”预设会让更多区块参与渲染，可能带来一定性能开销。
