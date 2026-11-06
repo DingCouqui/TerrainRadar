@@ -113,7 +113,7 @@
 - [ ] 光照穿透生效：`light on` 时树冠下地形明显变亮，`light off` 恢复（Sodium 下由 `LightDataAccess` 补光）
 - [ ] 运行时切换：`/terrainradar off` → 3~5s 内植被恢复可见；`/terrainradar on` → 3~5s 内重新隐藏；键位/GUI 应用同样生效；无卡死、无崩溃（Sodium 下会重建区块，日志有 `Stopping worker threads` / `Started 10 worker threads` 属正常）
 - [ ] Iris 安装且**启用光影包**时不崩溃、不紫黑/闪烁，隐藏与补洞仍生效；光影下光照穿透是否明显取决于 shader
-- [ ] “表层/深层”预设隐藏整层地表时，会看到隐藏方块后方的天空/洞穴/含水层——这是隐藏语义的预期结果，**不算洞**（与 ADR 0005 一致）
+- [ ] “表层/深层”预设隐藏整层地表时，会看到隐藏方块后方的天空/洞穴/含水层——这是隐藏语义的预期结果，**不算洞**（与 ADR 0005 一致；实测在未装 Sodium 的纯 Indigo 路径下同样出现，机制是原地表高度留下水平空腔、掠射视线穿出到轮廓外；Sodium 的 section 遮挡剔除会让缺口后显示天空色空背景，视觉上更明显一点）。想避免该现象请用“植被”预设
 - [ ] 卸载 Sodium/Iris 后，原版/Indigo 路径的隐藏、补洞、光照与“表层预设的地表透空”表现不变；**日志里不应出现 `@Mixin target net/caffeinemc/... was not found` 或 `Error loading class: net/caffeinemc/...`**（`SodiumMixinPlugin` 会在 Sodium 缺失时提前过滤这三个 mixin）
 
 ## 3. 回报格式
