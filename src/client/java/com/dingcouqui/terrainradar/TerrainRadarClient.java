@@ -7,6 +7,7 @@ import com.dingcouqui.terrainradar.hidden.LightCache;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +31,28 @@ public final class TerrainRadarClient implements ClientModInitializer {
             LightCache.invalidate();
         });
         LOGGER.info("TerrainRadar loaded: {} hidden block ids", HiddenBlocks.ids().size());
+        logRendererCompat();
+    }
+
+    /** 记录实际生效的渲染管线，方便用户反馈兼容性问题。 */
+    private static void logRendererCompat() {
+        try {
+            FabricLoader loader = FabricLoader.getInstance();
+            if (loader.isModLoaded("sodium")) {
+                String version = loader.getModContainer("sodium")
+                        .map(container -> container.getMetadata().getVersion().getFriendlyString())
+                        .orElse("unknown");
+                LOGGER.info("TerrainRadar: Sodium {} detected, Sodium chunk render hooks enabled", version);
+            }
+            if (loader.isModLoaded("iris")) {
+                String version = loader.getModContainer("iris")
+                        .map(container -> container.getMetadata().getVersion().getFriendlyString())
+                        .orElse("unknown");
+                LOGGER.info("TerrainRadar: Iris {} detected", version);
+            }
+        } catch (RuntimeException e) {
+            LOGGER.debug("读取渲染模组信息失败", e);
+        }
     }
 
     /** 配置或隐藏集合变化后统一调用：保存、重解析、让缓冲区重建。 */

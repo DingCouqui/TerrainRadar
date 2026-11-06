@@ -1,18 +1,22 @@
-# TerrainRadar 手动测试清单（v0.3.0）
+# TerrainRadar 手动测试清单（v0.4.0）
 
-> 分工：实现方不操作游戏目录。你把 jar 放进实例的 `mods/`，按下面步骤验证。
+> 分工：实现方不操作项目所有者的游戏目录。你把 jar 放进实例的 `mods/`，按下面步骤验证。
 > 依赖：Minecraft **1.21.11**、Fabric Loader（≥0.17）、**Fabric API**（0.141.6+1.21.11）；不需要 Cloth Config。
+> 可选：**Sodium 0.8.x**（0.8.7 / 0.8.15 实测）、**Iris 1.10.x**（1.10.7 / 1.10.8 实测）、ModMenu。
 
 ## 0. 交付物
 
-- `build/libs/terrainradar-0.3.0.jar`
-- 建议测试实例：`D:\Games\Minecraft\Game\.minecraft\versions\1.21.11-Build`（已有 fabric-api 0.141.6 + modmenu）或新建纯净 1.21.11 Fabric 实例
+- `build/libs/terrainradar-0.4.0.jar`（普通构建）
+- `build/libs/terrainradar-lite-0.4.0.jar`（lite：多人会话中关闭隐藏与光照穿透）
+- 建议测试实例：
+  - **Sodium / Iris 兼容**：`D:\Games\Minecraft\Game\.minecraft\versions\1.21.11`（已有 fabric-api 0.141.6 + sodium 0.8.15 + iris 1.10.8 + modmenu；把 terrainradar 换成新 jar）
+  - **原版 / Indigo 回归**：任一无 Sodium/Iris 的 1.21.11 Fabric 实例
 - 不要用 `1.21.11-Multi-Version`（168 个 mod，干扰判断）
 
 ## 1. 安装
 
-1. 把 `terrainradar-0.1.0.jar` 复制到 `versions\<实例>\mods\`
-2. 确认 `mods\` 里有 `fabric-api-0.141.6+1.21.11.jar`，且没有其它 xray/透视类模组
+1. 把 `terrainradar-0.4.0.jar` 复制到 `versions\<实例>\mods\`
+2. 确认 `mods\` 里有 `fabric-api-0.141.6+1.21.11.jar`，且没有其它 xray/透视类模组；测 Sodium 兼容时再确认有 `sodium-*.jar`（0.8.x）与（可选）`iris-*.jar`（1.10.x）
 3. HMCL 启动该实例（Java 21），进入一个创造世界
 4. 主菜单 → Mods（如果装了 ModMenu）确认 TerrainRadar 已加载；否则看日志 `logs/latest.log`
 
@@ -98,11 +102,19 @@
 - [ ] 水、岩浆、玻璃、箱子等其它方块正常
 - [ ] 隐藏方块大量出现时帧率没有明显下降
 
-### F. 可选：兼容性冒烟
+### F. Sodium / Iris 兼容（v0.4.0）
 
-MVP 的隐藏逻辑适配了**原版渲染器**和 Fabric API 默认的 **Indigo**（两者都已在客户端注入）。如果实例里装了 **Sodium/Embeddium**，地形渲染会绕过这两条路径，隐藏大概率不生效（待后续兼容），请以纯净实例的结果为准。
+依赖：Sodium **0.8.x**（1.21.11；0.8.7 / 0.8.15 实测）、Iris **1.10.x**（1.10.7 / 1.10.8 实测，光影包可选）。
 
-- [ ] 在装了 Sodium/Iris 的实例里启动不崩溃（效果可能不完整，记录现象即可）
+- [ ] 启动不崩溃；日志出现 `TerrainRadar: Sodium <version> detected, Sodium chunk render hooks enabled`；装了 Iris 时还有 `TerrainRadar: Iris <version> detected`
+- [ ] 日志无 `Mixin apply` / `Injection failure` / `No refmap` 等 TerrainRadar 相关报错（Iris 自身的 refmap 警告可忽略）
+- [ ] 默认“植被”预设下，树叶/花草/原木/雪层/甘蔗等完全不可见；与关闭开关相比差异巨大
+- [ ] **无洞**：树干位置只剩“浅坑 + 下方泥土/草方块”，其朝向隐藏方块的顶面正常渲染，没有看穿到天空/虚空的缺口
+- [ ] 光照穿透生效：`light on` 时树冠下地形明显变亮，`light off` 恢复（Sodium 下由 `LightDataAccess` 补光）
+- [ ] 运行时切换：`/terrainradar off` → 3~5s 内植被恢复可见；`/terrainradar on` → 3~5s 内重新隐藏；键位/GUI 应用同样生效；无卡死、无崩溃（Sodium 下会重建区块，日志有 `Stopping worker threads` / `Started 10 worker threads` 属正常）
+- [ ] Iris 安装且**启用光影包**时不崩溃、不紫黑/闪烁，隐藏与补洞仍生效；光影下光照穿透是否明显取决于 shader
+- [ ] “表层/深层”预设隐藏整层地表时，会看到隐藏方块后方的天空/洞穴/含水层——这是隐藏语义的预期结果，**不算洞**（与 ADR 0005 一致）
+- [ ] 卸载 Sodium/Iris 后，原版/Indigo 路径的隐藏、补洞、光照与“表层预设的地表透空”表现不变；**日志里不应出现 `@Mixin target net/caffeinemc/... was not found` 或 `Error loading class: net/caffeinemc/...`**（`SodiumMixinPlugin` 会在 Sodium 缺失时提前过滤这三个 mixin）
 
 ## 3. 回报格式
 
@@ -119,7 +131,10 @@ MVP 的隐藏逻辑适配了**原版渲染器**和 Fabric API 默认的 **Indigo
 | 日期 | 环境 | 结果 |
 | --- | --- | --- |
 | 2026-11-05 | 1.21.11 + Fabric API 0.141.6（Indigo），纯净实例 | 通过：树叶/花草/原木/雪层/甘蔗等正确隐形；树干根部、雪地、蘑菇方块接触面**无洞**；`light on` 与 `light off` 森林地面亮度差明显 |
+| 2026-11-06 | 1.21.11 + Fabric API 0.141.6 + Sodium 0.8.15-beta.1 + Iris 1.10.8，terrainradar **0.3.0** | **失败（复现 bug）**：开关只改变树叶阴影/整体明暗，树叶/原木/花草等照常渲染；日志 `[Indigo] Different rendering plugin detected; not applying Indigo.`，没有 Sodium 专用钩子 |
+| 2026-11-06 | 1.21.11 + Fabric API 0.141.6 + Sodium 0.8.15-beta.1 + Iris 1.10.8，terrainradar **0.4.0**（隔离实例，1280×720 游戏内 F2 截图） | 通过：启动无 mixin 报错；日志有 `TerrainRadar: Sodium 0.8.15-beta.1+mc1.21.11 detected, Sodium chunk render hooks enabled` 与 `TerrainRadar: Iris 1.10.8+mc1.21.11 detected`；“植被”预设下植被完全隐藏且**无洞**（树干位置只剩浅坑+泥土底面）；`/terrainradar off/on` 运行时切换 3~5s 内生效、无卡死；`light off` 后画面亮度 106.38 → 102.52（Sodium 补光生效）；`use_block_face_culling=false` 对照画面几乎不变（补洞无漏面）；“表层”预设的地表透空为隐藏语义下露出的天空/洞穴，非渲染洞；Iris + Complementary Reimagined r5.9.3 下隐藏正常、无紫黑/闪烁 |
+| 2026-11-06 | 1.21.11 + Fabric API 0.141.6（Indigo，移除 Sodium/Iris），terrainradar **0.4.0** | 通过（回归）：Indigo 正常注册；隐藏/补洞正常，画面与 Sodium 版 mean diff 2.4；`SodiumMixinPlugin` 过滤后日志无 `@Mixin target net/caffeinemc/... was not found` / `Error loading class` 警告 |
 
-已通过项：A（加载）、B（隐藏与补洞）、C（光照差异）。
+已通过项：A（加载）、B（隐藏与补洞）、C（光照差异）、C2（GUI）、C3（按键绑定）、C4（语言）、F（Sodium/Iris 兼容，0.4.0）。
 
-仍建议补测：D（命令 add/remove/preset/list/reload 与配置持久）、E（物品/碰撞/轮廓回归）、FPS 是否明显下降、Sodium/Iris 冒烟。
+仍建议补测：D（命令 add/remove/preset/list/reload 与配置持久，0.4.0 在 Sodium 环境下已顺带验证大多数命令）、E（物品/碰撞/轮廓回归）、FPS 是否明显下降、Iris 光影包下的长时间稳定性。

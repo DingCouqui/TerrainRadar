@@ -10,7 +10,10 @@
     "client": ["com.dingcouqui.terrainradar.TerrainRadarClient"],
     "modmenu": ["com.dingcouqui.terrainradar.modmenu.ModMenuIntegration"]
   },
-  "mixins": ["terrainradar.mixins.json"],
+  "mixins": [
+    "terrainradar.mixins.json",
+    "terrainradar.sodium.mixins.json"
+  ],
   "icon": "assets/terrainradar/icon.png",
   "depends": {
     "fabricloader": ">=0.17.0",
@@ -18,6 +21,8 @@
     "fabric-api": "*"
   },
   "suggests": {
-    "modmenu": ">=17.0.0"
+    "modmenu": ">=17.0.0",
+    "sodium": "*",
+    "iris": "*"
   }
 }

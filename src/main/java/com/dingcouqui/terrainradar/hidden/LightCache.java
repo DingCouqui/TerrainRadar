@@ -22,6 +22,8 @@ public final class LightCache {
         return map;
     });
     private static final ThreadLocal<Integer> SCAN_EPOCH = ThreadLocal.withInitial(() -> -1);
+    private static final ThreadLocal<BlockPos.Mutable> PROBE =
+            ThreadLocal.withInitial(BlockPos.Mutable::new);
     private static volatile int epoch;
 
     private LightCache() {
@@ -56,6 +58,15 @@ public final class LightCache {
             covered = cached == 1;
         }
         return covered;
+    }
+
+    /**
+     * 坐标版本（Sodium 的 LightDataAccess.compute 只给坐标）：复用线程本地可变坐标，避免热路径分配。
+     */
+    public static boolean shouldBoostSkyLight(BlockRenderView world, int x, int y, int z) {
+        BlockPos.Mutable probe = PROBE.get();
+        probe.set(x, y, z);
+        return shouldBoostSkyLight(world, probe);
     }
 
     public static int withFullSky(int lightmapCoordinates) {

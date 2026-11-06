@@ -1,6 +1,7 @@
 # TerrainRadar 设计规格（Fabric 客户端模组）
 
-> v0.3.0（2026-11-06）。资源包工程已归档到 `_legacy-pack-export/`（git tag `pack-legacy-v0.2.1`），由项目所有者剪切走。
+> v0.4.0（2026-11-06）。v0.4.0 完成 **Sodium 0.8.x / Iris 1.10.x 适配**（第三阶段）；v0.3.0 为原版 / Indigo 基线。
+> 资源包工程已归档到 `_legacy-pack-export/`（git tag `pack-legacy-v0.2.1`），由项目所有者剪切走。
 > 本文件描述 mod 的设计；实现细节以本文件、`GLOSSARY.md`、`docs/adr/` 为准。
 
 ## 1. 目标
@@ -16,6 +17,7 @@
 - **Fabric 纯客户端模组**（`environment: client`），服务端不装也能用；不改服务端逻辑、不改碰撞与掉落。
 - 先支持 **Minecraft 1.21.11**（最后一个 1.x 版本，Java 21）。后续是否跟 26.x 另议。
 - 依赖：**Fabric API**；ModMenu 可选（方便打开配置）。
+- 可选兼容：**Sodium 0.8.x**（0.8.7 / 0.8.15 实测）与 **Iris 1.10.x**。Sodium 存在时自动启用一组 Sodium 专用渲染钩子（单独 mixin 配置，`required: false`，不构成硬依赖）。
 
 ## 3. 隐藏语义
 
@@ -46,8 +48,10 @@
 | Loom | `1.19.3`（官方 1.21.11 模板的 `net.fabricmc.fabric-loom-remap`） |
 | Gradle | 9.8.2 |
 | JDK | 21 |
+| Sodium（可选兼容） | `0.8.7` / `0.8.15-beta.1`（1.21.11） |
+| Iris（可选兼容） | `1.10.7` / `1.10.8`（1.21.11） |
 
-> MVP 已构建成功（`build/libs/terrainradar-0.3.0.jar`）。构建命令（本机）：
+> v0.4.0 已构建成功（`build/libs/terrainradar-0.4.0.jar`、`build/libs/terrainradar-lite-0.4.0.jar`）。构建命令（本机）：
 >
 > ```powershell
 > $env:JAVA_HOME='D:\Games\Minecraft\OtherClients\McHMR\java25'
@@ -62,6 +66,18 @@
 - 光照：mixin `WorldRenderer.getLightmapCoordinates`，当渲染位置正上方存在隐藏方块时把天光分量补到 15（线程本地缓存，配置变化时失效）；不做真 relight。
 - 刷新：配置变化合并到下一 tick，调用 `worldRenderer.reload()`（MVP 采用简单方案；后续可换 `scheduleChunkRender*` 精确标脏）。
 - 配置：`FabricLoader.getInstance().getConfigDir()` + Gson。
+
+**Sodium / Iris 适配（v0.4.0，见 `docs/adr/0006`）**：
+
+Sodium 用自己的区块渲染管线，原版与 Indigo 的钩子全部失效。新增 `terrainradar.sodium.mixins.json`（`@Mixin(targets = "...", remap = false)`，编译期不依赖 Sodium，`required: false`；`plugin` 在 Sodium 缺失时提前过滤，未装 Sodium 的实例日志保持干净）：
+
+| 需求 | Sodium 注入点 | 说明 |
+| --- | --- | --- |
+| 隐藏方块 | `BlockRenderer.renderModel` HEAD 取消 | Sodium 的每方块网格入口；`@Inject(order = 0)` 先于 Iris 的 HEAD/TAIL，避免其 `hasOverride` 标记泄漏 |
+| 补洞 | `AbstractBlockRenderContext.shouldDrawSide` HEAD 返回 `true` | Sodium 用 `ShapeComparisonCache` 自己做剔除，不调用原版 `Block.shouldDrawSide` |
+| 光照穿透 | `LightDataAccess.compute` RETURN 把 packed 天空光位（bit4-7）设为 15 | 复用 `LightCache` 的“上方有隐藏方块”判定；`WorldRenderer.getLightmapCoordinates` 在 Sodium 下不参与地形 |
+
+Sodium 不存在时目标类不会加载、钩子自然失效；未来 Sodium 改签名时配置 `required: false` 会降级为日志告警而不是崩溃。刷新仍沿用 `worldRenderer.reload()`（Sodium 会据此重建全部区块，实测生效）。
 
 ## 6. MVP 范围与验收
 
@@ -79,20 +95,35 @@
 
 **第二阶段（已实现）**：单界面标签页（设置 / 方块清单）、可滚动清单（滚动条 / PageUp/Down）、预设（植被 / 表层 / 深层）、ModMenu 集成（不设默认键位）。
 
+**第三阶段（v0.4.0，已实现）：Sodium / Iris 适配**。验收标准：
+
+- Sodium 0.8.x 下，默认“植被”清单里的树叶/花草/原木/雪层等完全不可见；与关闭开关有巨大差异；
+- 隐藏方块的邻居面正常显示：树干位置只剩“浅坑 + 下方泥土/草方块”，没有看穿到天空/虚空的洞；
+- 光照穿透在 Sodium 下生效（`light on/off` 的地面亮度差异可辨）；
+- 运行时 `/terrainradar on|off`、键位、GUI 切换后区块立即重建并生效，不卡死、不崩溃；
+- 日志出现 `TerrainRadar: Sodium ... detected, Sodium chunk render hooks enabled`，无 mixin 注入失败；
+- Iris 1.10.x 安装（含开启光影包）时不崩溃，隐藏与补洞仍生效；
+- 未安装 Sodium 时原版/Indigo 路径行为不变（回归通过）。
+- **2026-11-06 已在 1.21.11 + Fabric API 0.141.6 + Sodium 0.8.15-beta.1 + Iris 1.10.8 隔离实例实测通过**（截图对比见 `docs/TESTING.md` 测试记录）。
+
 ## 7. 测试与交付
 
 - 我负责：构建 jar、安装/测试步骤、测试清单、问题修复。
 - 项目所有者负责：把 jar 放进游戏实例（实现方不操作游戏目录）、按清单验证。
-- 测试环境：**纯净 1.21.11 Fabric 实例**（Fabric API；ModMenu 可选），先不装 Sodium/Iris；兼容性验证放到 MVP 之后。
+- 测试环境：**纯净 1.21.11 Fabric 实例**（Fabric API；ModMenu 可选）用于原版/Indigo 回归；**1.21.11 + Fabric API + Sodium 0.8.x + Iris 1.10.x** 实例用于兼容验证（v0.4.0 起）。验证使用隔离实例（复制版本目录 + 独立 gameDir），不直接操作项目所有者的游戏目录。
 
 ## 8. 已知风险
 
-- **1.21.11 的精确 mixin 签名**需要实机核对（现有开源先例是 1.21.4 或更新的快照命名，不能照抄）。
-- **VisGraph / SectionOcclusionGraph 整段剔除**：可能让隐藏方块所在区块整体不渲染，需试验。
-- **Sodium / Iris 共存**：Sodium 需要单独的 `BlockOcclusionCache` 钩子；光影下顶点亮度方案可能失效。
-- **客户端 relight**可能被服务端下发的 light 包覆盖，所以首版不做真 relight。
+- **1.21.11 的精确 mixin 签名**需要实机核对（现有开源先例是 1.21.4 或更新的快照命名，不能照抄）。v0.3.0 / v0.4.0 均已实机核对。
+- **VisGraph / SectionOcclusionGraph 整段剔除**：可能让隐藏方块所在区块整体不渲染；目前实测植被/表层预设未复现。
+- **Sodium 版本漂移**：适配依赖 Sodium 0.8.x 的 `BlockRenderer.renderModel` / `AbstractBlockRenderContext.shouldDrawSide` / `LightDataAccess.compute` 三个成员；签名变化时钩子静默降级（`required: false` + 日志告警），不会崩溃，但隐藏会失效，需要跟版修复。
+- **Iris 光影**：隐藏/补洞发生在区块网格构建阶段，与光影无关；光照穿透是顶点 lightmap 近似，光影包是否使用它取决于 shader。
+- **Sodium 下的光照穿透覆盖范围**：`LightDataAccess` 只能读到区块构建的 `LevelSlice`（渲染 section ±2 方块），极高树冠跨出该范围时可能漏判“上方有隐藏方块”。
+- **客户端 relight**可能被服务端下发的 light 包覆盖，所以不做真 relight。
+- 隐藏“表层/深层”预设的整层地表时，会看到其后的洞穴/含水层/空气；这是隐藏语义的预期结果（见 ADR 0005），不是补洞失败。
 
 ## 9. 文档与历史
 
 - 资源包工程（v0.2.1、ADR 0001–0003、清单与生成脚本）在 `_legacy-pack-export/`，git tag `pack-legacy-v0.2.1` 保留了它的最后状态。
 - 转向原因与取舍见 `docs/adr/0004-from-resource-pack-to-fabric-mod.md`。
+- Sodium / Iris 适配方案见 `docs/adr/0006-sodium-iris-support.md`。

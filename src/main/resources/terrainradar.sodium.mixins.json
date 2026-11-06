@@ -1,0 +1,15 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "com.dingcouqui.terrainradar.mixin.sodium",
+  "plugin": "com.dingcouqui.terrainradar.mixin.SodiumMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "SodiumBlockRendererMixin",
+    "SodiumBlockRenderContextMixin",
+    "SodiumLightDataAccessMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

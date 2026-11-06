@@ -46,3 +46,10 @@ _Avoid_: 默认、仅树叶、仅植物（旧名，已废弃）
 
 **参考实现（Reference Implementation）**：
 已归档的资源包工程（`pack-legacy-v0.2.1`）与 `REFERENCE/` 下的 Xray Ultimate。只作为隐藏语义与视觉效果的参照，不再是交付形态。
+
+**Sodium 渲染管线（Sodium Render Pipeline）**：
+Sodium 用自己的区块网格构建器（`ChunkBuilderMeshingTask` → `BlockRenderer.renderModel`）与面剔除/光照采样替代原版地形渲染，并取代 Fabric Indigo。装 Sodium 时 Indigo 会输出 `Different rendering plugin detected; not applying Indigo.` 并退出，原版/Indigo 的隐藏钩子全部失效。
+
+**Sodium 适配层（Sodium Compatibility Layer）**：
+`terrainradar.sodium.mixins.json` 中的三个注入（隐藏、补洞、光照穿透），只在 Sodium 存在时生效，编译期不依赖 Sodium；`required: false`，Sodium 改版时优雅降级。
+_Avoid_: 直接说“Sodium 兼容补丁”（容易和资源包/其他模组的补丁混淆）
