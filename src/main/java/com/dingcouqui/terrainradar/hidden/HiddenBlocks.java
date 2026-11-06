@@ -11,14 +11,21 @@ import org.slf4j.Logger;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.BooleanSupplier;
 
 /** 运行时隐藏集合：把配置里的方块 ID 解析成 Block，渲染热路径只查 Block 集合。 */
 public final class HiddenBlocks {
     private static volatile Set<Block> blocks = Collections.emptySet();
     private static volatile Set<String> missingIds = Collections.emptySet();
     private static volatile Set<String> ids = Collections.emptySet();
+    private static volatile BooleanSupplier hideGate = () -> true;
 
     private HiddenBlocks() {
+    }
+
+    /** 由客户端注入的实际生效条件（例如 lite 构建在多人模式下关闭隐藏）。 */
+    public static void setHideGate(BooleanSupplier gate) {
+        hideGate = gate == null ? () -> true : gate;
     }
 
     public static void reload(Logger logger) {
@@ -53,7 +60,7 @@ public final class HiddenBlocks {
     }
 
     public static boolean isHidden(Block block) {
-        return !blocks.isEmpty() && blocks.contains(block);
+        return hideGate.getAsBoolean() && !blocks.isEmpty() && blocks.contains(block);
     }
 
     public static boolean isEmpty() {

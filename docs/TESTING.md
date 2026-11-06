@@ -1,11 +1,11 @@
-# TerrainRadar 手动测试清单（v0.2.1）
+# TerrainRadar 手动测试清单（v0.3.0）
 
 > 分工：实现方不操作游戏目录。你把 jar 放进实例的 `mods/`，按下面步骤验证。
 > 依赖：Minecraft **1.21.11**、Fabric Loader（≥0.17）、**Fabric API**（0.141.6+1.21.11）；不需要 Cloth Config。
 
 ## 0. 交付物
 
-- `build/libs/terrainradar-0.2.1.jar`
+- `build/libs/terrainradar-0.3.0.jar`
 - 建议测试实例：`D:\Games\Minecraft\Game\.minecraft\versions\1.21.11-Build`（已有 fabric-api 0.141.6 + modmenu）或新建纯净 1.21.11 Fabric 实例
 - 不要用 `1.21.11-Multi-Version`（168 个 mod，干扰判断）
 

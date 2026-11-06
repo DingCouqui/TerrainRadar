@@ -7,6 +7,7 @@ import com.dingcouqui.terrainradar.hidden.LightCache;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.minecraft.client.MinecraftClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +20,8 @@ public final class TerrainRadarClient implements ClientModInitializer {
     public void onInitializeClient() {
         ConfigManager.load(LOGGER);
         HiddenBlocks.reload(LOGGER);
+        HiddenBlocks.setHideGate(() -> MultiplayerFlag.isEnabledInMultiplayer
+                || !isMultiplayerSession(MinecraftClient.getInstance()));
         TerrainRadarCommand.register();
         ToggleKeyBinding.register();
         ClientTickEvents.END_CLIENT_TICK.register(Refresh::tick);
@@ -35,5 +38,13 @@ public final class TerrainRadarClient implements ClientModInitializer {
         HiddenBlocks.reload(LOGGER);
         LightCache.invalidate();
         Refresh.request();
+    }
+
+    /** 是否处于多人会话：远程服务器，或已开放到局域网的本地世界。 */
+    private static boolean isMultiplayerSession(MinecraftClient client) {
+        if (client.getCurrentServerEntry() != null) {
+            return true;
+        }
+        return client.getServer() != null && client.getServer().getServerPort() > 0;
     }
 }

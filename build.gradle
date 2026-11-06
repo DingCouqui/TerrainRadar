@@ -48,3 +48,53 @@ java {
     toolchain.languageVersion = JavaLanguageVersion.of(21)
     withSourcesJar()
 }
+
+// ---- lite 变体：同一份代码，仅替换 MultiplayerFlag 的构建期取值 ----
+def liteFlagClasses = layout.buildDirectory.dir('lite-flag-classes')
+def liteJarFile = layout.buildDirectory.file("libs/terrainradar-lite-${project.version}.jar")
+def remapJarTask = tasks.named('remapJar')
+
+tasks.register('compileLiteFlag', JavaCompile) {
+    source = fileTree('src/lite/java')
+    classpath = files()
+    destinationDirectory.set(liteFlagClasses)
+    options.release = 21
+    options.encoding = 'UTF-8'
+}
+
+tasks.register('liteJar') {
+    dependsOn remapJarTask
+    dependsOn 'compileLiteFlag'
+    inputs.file(remapJarTask.flatMap { it.archiveFile })
+    inputs.dir(liteFlagClasses)
+    outputs.file(liteJarFile)
+
+    doLast {
+        def normalJar = remapJarTask.get().archiveFile.get().asFile
+        def liteClass = new File(liteFlagClasses.get().asFile,
+                'com/dingcouqui/terrainradar/MultiplayerFlag.class')
+        def output = liteJarFile.get().asFile
+        output.parentFile.mkdirs()
+
+        new java.util.zip.ZipFile(normalJar).withCloseable { zip ->
+            new java.util.zip.ZipOutputStream(new FileOutputStream(output)).withCloseable { out ->
+                zip.entries().each { entry ->
+                    out.putNextEntry(new java.util.zip.ZipEntry(entry.name))
+                    if (entry.name == 'com/dingcouqui/terrainradar/MultiplayerFlag.class') {
+                        out.write(liteClass.bytes)
+                    } else {
+                        zip.getInputStream(entry).withCloseable { input ->
+                            out.write(input.bytes)
+                        }
+                    }
+                    out.closeEntry()
+                }
+            }
+        }
+    }
+}
+
+tasks.named('assemble') {
+    dependsOn 'liteJar'
+}
+
