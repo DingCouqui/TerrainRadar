@@ -1,6 +1,6 @@
 # TerrainRadar 设计规格（Fabric 客户端模组）
 
-> v0.4.0（2026-11-06）。v0.4.0 完成 **Sodium 0.8.x / Iris 1.10.x 适配**（第三阶段）；v0.3.0 为原版 / Indigo 基线。
+> v0.4.1（2026-11-06）。v0.4.0 完成 **Sodium 0.8.x / Iris 1.10.x 适配**（第三阶段），v0.4.1 修复 `/terrainradar gui` 在聊天框输入时被 `ChatScreen` 立即关闭的问题；v0.3.0 为原版 / Indigo 基线。
 > 资源包工程已归档到 `_legacy-pack-export/`（git tag `pack-legacy-v0.2.1`），由项目所有者剪切走。
 > 本文件描述 mod 的设计；实现细节以本文件、`GLOSSARY.md`、`docs/adr/` 为准。
 
@@ -51,7 +51,7 @@
 | Sodium（可选兼容） | `0.8.7` / `0.8.15-beta.1`（1.21.11） |
 | Iris（可选兼容） | `1.10.7` / `1.10.8`（1.21.11） |
 
-> v0.4.0 已构建成功（`build/libs/terrainradar-0.4.0.jar`、`build/libs/terrainradar-lite-0.4.0.jar`）。构建命令（本机）：
+> v0.4.1 已构建成功（`build/libs/terrainradar-0.4.1.jar`、`build/libs/terrainradar-lite-0.4.1.jar`）。构建命令（本机）：
 >
 > ```powershell
 > $env:JAVA_HOME='D:\Games\Minecraft\OtherClients\McHMR\java25'

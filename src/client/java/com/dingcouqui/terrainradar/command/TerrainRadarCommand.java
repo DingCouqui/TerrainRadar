@@ -166,7 +166,12 @@ public final class TerrainRadarCommand {
     }
 
     private static int openGui() {
-        MinecraftClient.getInstance().setScreen(new TerrainRadarScreen(null));
+        MinecraftClient client = MinecraftClient.getInstance();
+        // 命令是玩家在聊天框里输入的：ChatScreen 在 sendMessage 返回后会立刻
+        // client.setScreen(null)（见 ChatScreen.keyPressed），如果这里同步打开界面，
+        // 会被紧接着的 setScreen(null) 立刻关掉，表现为“命令没反应”。
+        // 因此把打开界面延迟到客户端下一 tick 执行。
+        client.send(() -> client.setScreen(new TerrainRadarScreen(null)));
         return 1;
     }
 

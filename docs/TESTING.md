@@ -1,4 +1,4 @@
-# TerrainRadar 手动测试清单（v0.4.0）
+# TerrainRadar 手动测试清单（v0.4.1）
 
 > 分工：实现方不操作项目所有者的游戏目录。你把 jar 放进实例的 `mods/`，按下面步骤验证。
 > 依赖：Minecraft **1.21.11**、Fabric Loader（≥0.17）、**Fabric API**（0.141.6+1.21.11）；不需要 Cloth Config。
@@ -6,8 +6,8 @@
 
 ## 0. 交付物
 
-- `build/libs/terrainradar-0.4.0.jar`（普通构建）
-- `build/libs/terrainradar-lite-0.4.0.jar`（lite：多人会话中关闭隐藏与光照穿透）
+- `build/libs/terrainradar-0.4.1.jar`（普通构建）
+- `build/libs/terrainradar-lite-0.4.1.jar`（lite：多人会话中关闭隐藏与光照穿透）
 - 建议测试实例：
   - **Sodium / Iris 兼容**：`D:\Games\Minecraft\Game\.minecraft\versions\1.21.11`（已有 fabric-api 0.141.6 + sodium 0.8.15 + iris 1.10.8 + modmenu；把 terrainradar 换成新 jar）
   - **原版 / Indigo 回归**：任一无 Sodium/Iris 的 1.21.11 Fabric 实例
@@ -15,7 +15,7 @@
 
 ## 1. 安装
 
-1. 把 `terrainradar-0.4.0.jar` 复制到 `versions\<实例>\mods\`
+1. 把 `terrainradar-0.4.1.jar` 复制到 `versions\<实例>\mods\`
 2. 确认 `mods\` 里有 `fabric-api-0.141.6+1.21.11.jar`，且没有其它 xray/透视类模组；测 Sodium 兼容时再确认有 `sodium-*.jar`（0.8.x）与（可选）`iris-*.jar`（1.10.x）
 3. HMCL 启动该实例（Java 21），进入一个创造世界
 4. 主菜单 → Mods（如果装了 ModMenu）确认 TerrainRadar 已加载；否则看日志 `logs/latest.log`
@@ -134,6 +134,7 @@
 | 2026-11-06 | 1.21.11 + Fabric API 0.141.6 + Sodium 0.8.15-beta.1 + Iris 1.10.8，terrainradar **0.3.0** | **失败（复现 bug）**：开关只改变树叶阴影/整体明暗，树叶/原木/花草等照常渲染；日志 `[Indigo] Different rendering plugin detected; not applying Indigo.`，没有 Sodium 专用钩子 |
 | 2026-11-06 | 1.21.11 + Fabric API 0.141.6 + Sodium 0.8.15-beta.1 + Iris 1.10.8，terrainradar **0.4.0**（隔离实例，1280×720 游戏内 F2 截图） | 通过：启动无 mixin 报错；日志有 `TerrainRadar: Sodium 0.8.15-beta.1+mc1.21.11 detected, Sodium chunk render hooks enabled` 与 `TerrainRadar: Iris 1.10.8+mc1.21.11 detected`；“植被”预设下植被完全隐藏且**无洞**（树干位置只剩浅坑+泥土底面）；`/terrainradar off/on` 运行时切换 3~5s 内生效、无卡死；`light off` 后画面亮度 106.38 → 102.52（Sodium 补光生效）；`use_block_face_culling=false` 对照画面几乎不变（补洞无漏面）；“表层”预设的地表透空为隐藏语义下露出的天空/洞穴，非渲染洞；Iris + Complementary Reimagined r5.9.3 下隐藏正常、无紫黑/闪烁 |
 | 2026-11-06 | 1.21.11 + Fabric API 0.141.6（Indigo，移除 Sodium/Iris），terrainradar **0.4.0** | 通过（回归）：Indigo 正常注册；隐藏/补洞正常，画面与 Sodium 版 mean diff 2.4；`SodiumMixinPlugin` 过滤后日志无 `@Mixin target net/caffeinemc/... was not found` / `Error loading class` 警告 |
+| 2026-11-06 | 1.21.11 + Fabric API 0.141.6 + Sodium 0.8.15-beta.1 + Iris 1.10.8，terrainradar **0.4.1**（隔离实例） | 通过（bugfix）：`/terrainradar gui` 之前被 `ChatScreen` 在命令返回后立即 `setScreen(null)` 关掉，表现为“命令没反应”；改为 `client.send(...)` 延迟到下一 tick 打开后，实测命令能正常打开「TerrainRadar 设置」界面，无异常 |
 
 已通过项：A（加载）、B（隐藏与补洞）、C（光照差异）、C2（GUI）、C3（按键绑定）、C4（语言）、F（Sodium/Iris 兼容，0.4.0）。
 
